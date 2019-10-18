@@ -1,14 +1,37 @@
 # 计算机网络基础
 
-## 应用层
+![计算机网络体系结构](../images/network/计网体系结构.png)
 
-### HTTP/HTTPS/TLS(SSL)协议
+## <font color="#69d">应用层</font>
+应用层的作用是通过进程间交互来完成特定的网络应用
+#### <font color="#99CC33">HTTP</font>
 
-### FTP
+超文本传输协议（HTTP，HyperText Transfer Protocol)是互联网上应用最为广泛的一种网络协议。所有的WWW文件都必须遵守这个标准。设计HTTP最初的目的是为了提供一种发布和接收HTML页面的方法。
 
-### smtp
+##### HTTP 1.0/1.1/2.0 的区别
 
-## 传输层
+    HTTP 1.0: 每个TCP连接只能发送一个请求，TCP连接 
+
+#### <font color="#99CC33"> 文件传输协议（FTP）：</font>
+    FTP 是File TransferProtocol（文件传输协议）的英文简称，而中文简称为“文传协议”。用于Internet上的控制文件的双向传输。同时，它也是一个应用程序（Application）。
+    所有FTP应用程序都遵守同一种协议以传输文件。在FTP的使用当中，用户经常遇到两个概念："下载"（Download）和"上传"（Upload），用户可通过客户机程序向（从）远程主机上传（下载）文件。
+    FTP的默认端口：控制端口一般为21，而数据端口不一定是20，这和FTP的应用模式有关，如果是主动模式，应该为20，如果为被动模式，由服务器端和客户端协商而定。
+
+#### <font color="#99CC33"> 简单文件传输协议（TFTP）：</font>
+    TFTP（Trivial File Transfer Protocol,简单文件传输协议）是TCP/IP协议族中的一个用来在客户机与服务器之间进行简单文件传输的协议，提供不复杂、开销不大的文件传输服务。端口号为69。
+
+#### <font color="#99CC33"> 远程终端协议（TELENET）：</font>
+    Telnet协议是TCP/IP协议族中的一员，是Internet远程登陆服务的标准协议和主要方式。它为用户提供了在本地计算机上完成远程主机工作的能力。
+    在终端使用者的电脑上使用telnet程序，用它连接到服务器。终端使用者可以在telnet程序中输入命令，这些命令会在服务器上运行，就像直接在服务器的控制台上输入一样。
+    可以在本地就能控制服务器。要开始一个telnet会话，必须输入用户名和密码来登录服务器。Telnet是常用的远程控制Web服务器的方法。
+
+## <font color="#69d">传输层</font>
+
+### <font color="#99CC33">TCP</font>
+
+
+
+### <font color="#99CC33">UDP</font>
 
 ## 网络层
 

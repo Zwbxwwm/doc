@@ -1,10 +1,10 @@
 ## [GitHub链接](https://github.com/Zwbxwwm/doc)
-顺便嘛....看看人家写的[面经文档](https://github.com/Snailclimb/JavaGuide)
-=======
+
+    顺便嘛....看看人家写的[面经文档](https://github.com/Snailclimb/JavaGuide)
 
 
 
-# 软件开发面经
+# <font color="red">软件开发面经</font>
 
 
 
@@ -31,15 +31,16 @@
 ## 目录：
 
 - java
-  - basic.md
-  - thread.md
-  - jvm.md
-  - spring.md
+  - [basic](java/basic.md)
+  - [thread](java/thread.md)
+  - [jvm](java/jvm.md)
+  - [spring](java/spring.md)
 - network
+  - [basic](network/basic.md)
 - dataBase
   - MySQL
-    - basic.md
-    - hard.md
+    - [basic](dataBase/MySQL/basic.md)
+    - [hard](dataBase/MySQL/hard.md)
   - NoSQL
 - images
 - company
