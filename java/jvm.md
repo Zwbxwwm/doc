@@ -12,3 +12,43 @@
 
 ​	双亲委派机制的意义在于，我们自己写的类会覆盖系统本身内部的类，造成系统内部程序的混乱，例如`java.lang.object`类，
 
+**2、synchronize在代码块锁、方法锁、类锁的区别**
+
+​	Java的关键字，用它来修饰一个方法或者是一段代码块的时候，可以保证同一时间内只有一个县城可以访问该方法；
+
+1. ​	修饰实例方法，相当于给当前的对象实例加锁，进入同步代码块之前要获得当前对象锁
+
+   ​	该方法指的是把synchronize关键字放在实例方法上，用于修饰非静态方法；
+
+   ​	
+
+   ```java
+       public synchronized void method(){
+           System.out.println("线程"+Thread.currentThread().getName());
+       }
+   ```
+
+   
+
+2. ​    修饰静态方法，相当于给当前的类对象加锁，每次进入同步代码时候要获取该对象
+
+3. ​    修饰代码块，制定加锁对象，对给定对象加锁，进入代码块之前获取该对象锁
+
+   第一种：不同的对象
+
+   ```java
+       public void run(){
+           synchronized (lock1){
+   			do something
+           }
+           synchronized (lock2){
+    			do something	
+           }
+       }
+   ```
+
+   上述的两个synchronize所包括的代码块是相互不影响的，因为使用着两个不同的锁对象。
+
+   
+
+   
