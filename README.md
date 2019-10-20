@@ -31,16 +31,16 @@
 ## 目录：
 
 - java
-  - [basic](java/basic.md)
-  - [thread](java/thread.md)
-  - [jvm](java/jvm.md)
+  - [基础知识](java/basic.md)
+  - [多线程](java/thread.md)
+  - [Java虚拟机](java/jvm.md)
   - [spring](java/spring.md)
 - network
-  - [basic](network/basic.md)
+  - [计算机网络基础](network/basic.md)
 - dataBase
-  - MySQL
-    - [basic](dataBase/MySQL/basic.md)
-    - [hard](dataBase/MySQL/hard.md)
+  - 关系数据库
+    - [数据库基础](dataBase/MySQL/basic.md)
+    - [数据库进阶](dataBase/MySQL/hard.md)
   - NoSQL
 - images
 - company
