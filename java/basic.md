@@ -1,5 +1,5 @@
 # JAVA基础
-## Java创建对象的4种方式
+## 1、Java创建对象的4种方式
 ### 使用new关键字
 ### 使用clone方法
 ### 使用反序列化
@@ -21,3 +21,6 @@ User user = User.class.newInstance();
 Constructor<User> constructor = User.class.getConstructor();
 User user = constructor.newInstance();
 ```
+
+------
+
