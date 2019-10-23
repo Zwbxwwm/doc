@@ -32,6 +32,7 @@
   - [Java虚拟机](java/jvm.md)
   - [spring](java/spring.md)
   - [数据结构](java/data_structure.md)
+  - [扩展知识](java/extension.md)
 - network
   - [计算机网络基础](network/basic.md)
 - dataBase
@@ -39,5 +40,6 @@
     - [数据库基础](dataBase/MySQL/basic.md)
     - [数据库进阶](dataBase/MySQL/hard.md)
   - NoSQL
+    - [Redis](database/NoSQL/Redis.md)
 - images
 - company
