@@ -103,5 +103,153 @@
     在单机情况下, 在内存中的一个互斥锁就能控制到一个程序中所有线程的并发.
     但由于有集群架构(负载均衡/微服务等场景下), 内存中的锁就没用了. 所以我们需要一个"全局锁"去实现控制多个程序/多个机器上的线程并发. 这个全局锁就叫"分布式锁"。
 
+------
+
+## 7、java实现多线程方式继承Thread和实现Runnable接口的区别
+
+1.  使用runnable实现多线程的例子
+
+   ```java
+   class MyRunnable implements Runnable {
+       private int ticket = 10;
+   
+       @Override
+       public void run() {
+           for (int i = 0; i < 50; i++) {
+               if (ticket > 0) {
+                   System.out.println(Thread.currentThread().getName() + "+sell ticket:" + ticket--);
+               }
+           }
+       }
+   }
+   
+   public class ThreadDemo2 {
+       public static void main(String[] args) {
+           MyRunnable my = new MyRunnable();
+           new Thread(my).start();
+           new Thread(my).start();
+           new Thread(my).start();
+       }
+   }
+   ```
+
+   ,<font color="blue">结果：三个线程使用一个计数器</font>
+
+   ```java
+   Thread-1+sell ticket:10
+   Thread-2+sell ticket:8
+   Thread-0+sell ticket:9
+   Thread-2+sell ticket:6
+   Thread-1+sell ticket:7
+   Thread-2+sell ticket:4
+   Thread-2+sell ticket:2
+   Thread-2+sell ticket:1
+   Thread-0+sell ticket:5
+   Thread-1+sell ticket:3
+   ```
+
+2. 使用Thread实现多线程
+
+   ```java
+   class MyRunnable extends Thread {
+       private int ticket = 10;
+       @Override
+       public void run() {
+           for (int i = 0; i < 50; i++) {
+               if (ticket > 0) {
+                   System.out.println(Thread.currentThread().getName() + "+sell ticket:" + ticket--);
+               }
+           }
+       }
+   }
+   
+   public class ThreadDemo2 {
+       public static void main(String[] args) {
+           new MyRunnable().start();
+           new MyRunnable().start();
+           new MyRunnable().start();
+       }
+   }
+   ```
+
+   <font color="blue">结果：三个独立的计数器线程</font>
+
+   ```java
+   Thread-0+sell ticket:10
+   Thread-1+sell ticket:10
+   Thread-1+sell ticket:9
+   Thread-0+sell ticket:9
+   Thread-1+sell ticket:8
+   Thread-2+sell ticket:10
+   Thread-1+sell ticket:7
+   Thread-0+sell ticket:8
+   Thread-1+sell ticket:6
+   Thread-2+sell ticket:9
+   Thread-1+sell ticket:5
+   Thread-0+sell ticket:7
+   Thread-1+sell ticket:4
+   Thread-1+sell ticket:3
+   Thread-1+sell ticket:2
+   Thread-1+sell ticket:1
+   Thread-2+sell ticket:8
+   Thread-0+sell ticket:6
+   Thread-2+sell ticket:7
+   Thread-0+sell ticket:5
+   Thread-2+sell ticket:6
+   Thread-0+sell ticket:4
+   Thread-2+sell ticket:5
+   Thread-0+sell ticket:3
+   Thread-2+sell ticket:4
+   Thread-0+sell ticket:2
+   Thread-2+sell ticket:3
+   Thread-0+sell ticket:1
+   Thread-2+sell ticket:2
+   Thread-2+sell ticket:1
+   ```
+
+   
+
+3. 区别====》Runnable的有点更好
+
+   - 如上述演示的一样，Runnable适合多个相同代码的程序处理相同的资源
+   - 避免单继承带来的局限性
+   - 增强代码的健壮性，实现了相同代码的复用性，实现代码和数据的独立
+
+------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
