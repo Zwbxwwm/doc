@@ -151,7 +151,7 @@
 2. 使用Thread实现多线程
 
    ```java
-   class MyRunnable extends Thread {
+   class MyThread extends Thread {
        private int ticket = 10;
        @Override
        public void run() {
@@ -165,9 +165,9 @@
    
    public class ThreadDemo2 {
        public static void main(String[] args) {
-           new MyRunnable().start();
-           new MyRunnable().start();
-           new MyRunnable().start();
+           new MyThread().start();
+           new MyThread().start();
+           new MyThread().start();
        }
    }
    ```
@@ -217,7 +217,13 @@
 
 ------
 
+## 8、Thread.start()和Thread.run()方法的区别
 
+- start()方法；在调用start()的时候，系统会分配另一个线程来对这个任务进行处理，实现的异步的操作
+
+- run()方法；在调用run()的时候，系统会使用当前线程来对该任务进行处理，这样实现的就是同步操作
+
+  总得来说就是调用run()方法并不能实现多线程的效果，只是顺序执行的效果。
 
 
 
