@@ -1,10 +1,10 @@
 # <font color="red">软件开发面经</font>
-## [GitHub链接](https://github.com/Zwbxwwm/doc)
+## GitHub链接：[https://github.com/Zwbxwwm/doc](https://github.com/Zwbxwwm/doc)
 
-    顺便嘛....看看人家写的[面经文档](https://github.com/Snailclimb/JavaGuide)
+  顺便嘛....也看看人家写的[面经文档](https://github.com/Snailclimb/JavaGuide)
 
 
-# ** 重点 ** 
+# **重点** 
 
 ------
 
