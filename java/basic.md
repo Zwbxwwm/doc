@@ -53,6 +53,31 @@ User user = constructor.newInstance();
   2. 当需要为一些类提供公共模块的时候，优先考虑抽象类，这样被子类继承即可使用，代码简洁
   3. 当注重代码的扩展性和可维护性的时候应该优先考虑接口类型，接口是程序之间的协议，比抽象类的使用更加的安全 
 
-  ------
+
+------
+
+## 3、为什么需要内部类
+
+- 内部类的基本使用方法；内部类在使用情况上和基本的方法的使用情况差不多，
+
+  静态内部不可以使用非静态内部类，非静态内部类可以使用任何类但是不能定义静态变量
+
+  构造内部类：
+
+  ```java
+  OutterObject outterObject = new OutterObject(Constructor Parameters);
+  InnerObject innerObject = outterObject.new InnerObject(Constructor Parameters);
+  ```
 
   
+
+- 内部类的优点：
+
+  1. 当要实现的一个接口和类里面的一个方法名完全一致就可以使用内部类来进行解决
+  2. 可以通过内部类和接口来解决Java无法进行多继承的问题
+  3. 提高封装性
+  4. 一个内部类可以访问创建它的外部类的变量，甚至是私有变量，这就为我们设计程序提供了更多的思路
+  5. <font color ="red">未完待续.........</font>
+
+------
+
