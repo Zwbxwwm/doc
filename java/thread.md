@@ -266,13 +266,90 @@
 
 ------
 
+## 10、线程之间通讯的方式（详解）
+
+1. 不使用等待/通知的机制来进行线程之间的通讯；
+
+   一个线程进行数据的操作，而另一个线程通过 while(true) 不断的检测数据的变化，从而达到线程之间通讯的效果。 
+
+2. 使用等待/通知的机制来进行线程之间的通讯；即wait和notify进行线程之间得通讯
+
+   - wait()方法的作用是时当前执行代码的线程等待，wait方法是object的方法，该方法<font color = "blue">将当前线程放置到“预执行队列”，</font>并且在wait所在的代码行处停止执行，直到<font color = "red">接收到通知或者是中断为止</font>，所以在调用wait方法之前需要获得对象的对象级别的监视锁，也就是说<font color = "red" size = "4">wait方法只能在同方法和同步代码块中执行</font>,执行wait方法之后，线程释放锁。
+   - notify()方法也是在同步方法或者是同步代码块中执行，在执行notify方法之前，线程必须获得该对象的对象级别的监视锁，该方法用来通知那些可能等待该对象的锁的线程，如果有多个线程在等待时，那就有线程规划器从中随机选取一个进行notify，值得注意的是，当前线程执行完notify之后并不会立马释放该对象的锁，呈现wait状态的线程也不会立马得到线程，而是在当前线程执行完所有任务之后才会释放该对象的锁。
+
+   简单的例子
+
+   //需要wait的程序
+
+   ```java
+   public class needWait extends Thread{
+   	private Object lock;
+   	public needWait(Object lock){
+           super;
+           this.lock = lock;
+       }
+       @Override
+       public void run(){
+           try(){
+               synchronized(lock){
+                   System.out.println("开始睡觉......");
+                   lock.wait();
+                   System.out.println("结束睡觉......");
+               }
+           }catch{
+               throw new Exception();
+           }
+       }
+   }
+   ```
+
+   //进行notify的方法
+
+   ```java
+   public class needNotify extend Thread{
+       private Object lock;
+       public needNotify(Object lock){
+       	super();
+           this.lock = lock;
+       }
+       
+       @Override
+       public void run(){
+           try(){
+               synchronized(lock){
+                   System.out.println("开始唤醒......");
+                   lock.notify();
+                   System.out.println("结束唤醒......")
+               }
+           }catch{
+               throws new Exception();
+           }
+       }
+   }
+   ```
+
+   //主程序
+
+   ```java
+   public class Main{
+   	public static void main(String[] args){
+           private Object lock;
+           try(){
+               needWait wait = new needWait(lock);
+               wait.start();
+               needNotify notify = new needNotify(lock);
+               notify.start();
+           }catch{
+               throws new Exception();
+           }
+       }
+   }
+   ```
 
 
+总结：关键字synchronize可以将所有object对象当成同步对象对待，而Java为所有的对象都实现了wait()和notify()方法，它们必须用在被synchronize同步的object的临界区中，通过wait()方法可以使处于临界区的线程进入等待状态，同时释放对象锁，notify()方法通过唤醒因为wait()进入等待的线程，使其进入就绪状态，被唤醒的线程会尝试重新获取对锁的控制权，并继续执行临界区内的代码，如果发出notify()的线程没有找到对应的对象，那么就忽略。
 
-
-
-
-
+------
 
 
 
