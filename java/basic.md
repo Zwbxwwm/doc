@@ -80,7 +80,7 @@ User user = constructor.newInstance();
 
 ------
 
-##  常见运算符（&、~、<<、>>、|、^）及经典例子
+**常见运算符（&、~、<<、>>、|、^）及经典例子**
 
 - &（与运算）针对二进制，只要有一个为0就为0；
 
@@ -122,4 +122,179 @@ User user = constructor.newInstance();
 2. <font color = "red">待更新</font>
 
 ------
+
+## 4、JAVA中普通io和nio的区别
+
+**a. 普通io**
+
+​	Java中的通信是通过socket来完成的，其中Socket分为ServerSocket和普通的Socket。
+
+​	服务端的构建过程：
+
+​	服务端根据场景的要求通过5种创建ServerSocket中的一种方法ServerSocket方法，调用ServerSocket中的accept方法启动监听，但是accept()方法是阻塞的（当程序调用accept之后，整个程序只有在接受有请求接入的时候程序才会往下走），当accept接受到请求之后会返回一个socket，具体流程如下程序注释
+
+```java
+public class MyServerSocket {
+    public static void main(String[] args) {
+        try {
+            //创建ServerSocket实例
+            ServerSocket serverSocket = new ServerSocket(8080);
+            //调用accept方法等待请求
+            Socket socket = serverSocket.accept();
+            //接受到请求之后，通过BufferedReader获取socket里面的数据
+            BufferedReader is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            String line = is.readLine();
+            System.out.println("客户端发送过来的数据："+line);
+            //创建printWriter对象用于往socket里面写入数据
+            PrintWriter printWriter = new PrintWriter(socket.getOutputStream());
+            printWriter.print("已接受客户端传来的数据："+line);
+
+            printWriter.flush();
+            //关闭资源
+            printWriter.close();
+            is.close();
+            socket.close();
+            serverSocket.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+​	客户端构建过程
+
+​	客户端通过主机地址和端口新建一个socket对象，通过printWriter和BufferedReader对socket进行写入和读取的操作，具体过程如下：
+
+```java
+public class MyClientSocket {
+    public static void main(String[] args) {
+        String msg = "客户端数据";
+        try {
+            //新建Socket对象，使用主机地址和端口连接到服务器
+            Socket socket = new Socket("127.0.0.1",8080);
+
+            //先向服务器发送请求，创建PrintWriter用于写入数据
+            PrintWriter printWriter = new PrintWriter(socket.getOutputStream());
+
+            //读取服务端传回的数据
+            BufferedReader is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            //写入数据
+            printWriter.println(msg);
+            printWriter.flush();
+
+            //接受服务端的数据
+            String line = is.readLine();
+            System.out.println("服务器传回数据："+line);
+
+            //关闭连接资源
+            is.close();
+            printWriter.close();
+            socket.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+**b.nio**
+
+​	nio内部由Buffer、channel、selector构成，其中buffer就是信息传输中的信息载体，相当于货物；channel是服务器与客户端建立的一条信息传输的管道，相当于送货车；selector则是将信息进行分拣，相当于中转场。
+
+
+
+## 5、函数式接口   {  @FunctionalInterface
+
+**简介：**
+
+所谓的函数式接口首先是一个接口，并且在这个接口里面只能只有一个抽象方法。这种类型的接口也称为SAM接口—single Abstract method interfaces
+
+**特点：**
+
+- 接口有且只有一个抽象方法
+- 允许定义静态方法
+- 允许定义默认方法
+- java.lang.object里面的public方法
+- 注解并不是必须的，只要定义的接口符合函数式接口的规范即可，但是只有增加函数式接口就必须符合函数接口的规范
+
+**示例**
+
+```java
+// 正确的函数式接口
+@FunctionalInterface
+public interface TestInterface {
+ 
+    // 抽象方法
+    public void sub();
+ 
+    // java.lang.Object中的public方法
+    public boolean equals(Object var1);
+ 
+    // 默认方法
+    public default void defaultMethod(){
+    
+    }
+ 
+    // 静态方法
+    public static void staticMethod(){
+ 
+    }
+}
+
+// 错误的函数式接口(有多个抽象方法)
+@FunctionalInterface
+public interface TestInterface2 {
+
+    void add();
+    
+    void sub();
+}
+```
+
+在构建方法的时候需要将函数式接口作为方法参数，然后就可以在使用该方法的时候使用lamda表达式
+
+## 6、函数式接口
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
