@@ -330,23 +330,113 @@ interface InterfaceExample{
 }
 ```
 
+## 7、Java 8中的Optional类
 
+Java 8引入最新的特性Optional类，Optional类主要解决的问题是空指针异常的问题(NullPointerException)
 
+本质上，Optional是一个包含可选值的包装类，这意味着Optional类既可以含有对象也可以为空。
 
+以前存在的问题：
 
+场景：获取某一属性值
 
+```java
+String isocaode = user.getAddress().getCountry().getIsocode().toUpperCase();
+```
 
+为了让上述代码不出现空指针异常的情况，需要代码进行相应的优化
 
+```java
+if(user != null){
+	Address address = new Address();
+	if(address != null){
+		Country country = new Country();
+		if(country.getIsocode != null){
+			String isocode = country.getIscode();
+			if(iscode != null){
+				isocode = isocode.toUpperCase();
+			}
+		}
+	}
+}
+```
 
+**创建Optional实例**
 
+```java
+// 使用of()方法创建的时候传进null值得话就会出现NullPointerException,如下所示
+Optional<User> opt = Optional.of(user);
+// 使用ofNullable()创建的时候，传进去的值既可以是null值也可以的是非null值
+Optional<User> opt = Optional.ofNullable(user);
+```
 
+**访问Optional对象的值**
 
+从Optional实例中取回实际值对象的方法之一就是使用get()方法，但是这个方法会在值为null的时候抛出异常，所以在获取值时候需要进行相应的验证。
 
+```java
+String name = "test";
+Optional<String> opt = Optional.ofNullable(name);
+assertTrue(opt.isPresent());
+```
 
+**返回默认值**
 
+Optional类提供了API用以返回对象值，或者在对象为空的时候返回默认值。
 
+- 第一个方法orElse()
 
+有值就返回值，没有值就返回参数
 
+```java
+User user1 = new User();
+User user2 = new User("null","18");
+User user = Optional.ofNullable(user1).orElse(user2);
+```
+
+- 第二个方法orElseGet()
+
+有值就返回值，没有值就执行作为Supplier(供应者)函数式接口，并执行返回执行结果
+
+```java
+User user = Optional.ofNullable(user).orElseGet(() -> user2)
+```
+
+差别在于在使用orElse()方法的时候，无论Optional里面有没有装配值都会对备选对象进行查询检查，而在使用orElseGet()方法的时候只有当Optional装配的是null值的时候才会执行lamda表达式。
+
+**返回异常**
+
+这个方法可以让我们自定义抛出异常，提供有用的异常信息
+
+```java
+User user = Optional.ofNUllable(user).orElseThrow(() -> new IllegalArgmentException());
+```
+
+**转换值**
+
+map()方法：
+
+map()对值应用作为参数的函数，然后将返回值包装在Option中，这就使对返回值进行链式调用的操作成为可能—下一个环节就是orElse()。
+
+```java
+User user = new User("转换值","18")
+String name = Optional.ofNullable(user)
+.map(u -> u.getName()).orElse("默认值")
+```
+
+flatMap()方法：
+
+flatMap()也是需要函数作为参数，需要对Optional对象进行操作，对Optional对象进行操作返回的值是接触包装后的String值；
+
+**过滤值**
+
+Optional类也提供了按照条件进行“过滤”值的方法。filter()接受一个Predicate参数，返回测试结果为true的值，如果测试结果为false，会返回一个空的Optional
+
+```java
+User user = new User("过滤值","1234");
+Optional<User> opt = Optional.ofNullable(user)
+.filter(u -> u.getName() != null && u.getName().length <= 3);
+```
 
 
 
