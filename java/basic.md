@@ -256,9 +256,79 @@ public interface TestInterface2 {
 
 在构建方法的时候需要将函数式接口作为方法参数，然后就可以在使用该方法的时候使用lamda表达式
 
-## 6、函数式接口
+## 6、Java双冒号（::）的使用
 
+| 语法种类                         | 示例                              |
+| -------------------------------- | --------------------------------- |
+| 引用静态方法                     | ContainingClass::staticMethobName |
+| 引用特定对象的示例方法           | ContainingOject::instanceMethob   |
+| 引用特定类型的任意对象的实例方法 | ContainingType::methodName        |
+| 引用构造函数                     | ClassName::new                    |
 
+- 引用静态方法
+
+```java
+public class test{
+    public void demo(){
+        List<String> list = Arrays.asList("aaa","bbb","ccc");
+        list.forEach(Test::print)
+    }
+    
+    public static void print(String text){
+        System.out.println(text);
+    }
+}
+```
+
+- 引用特定对象的实例方法
+
+```java
+public class Test{
+    public void test(){
+        List<String> list = Arrays.asList("aaa","bbb","ccc");
+        
+        list.forEach(new Test()::print)
+    }
+    
+    public void print(String text){
+        System.out.println(text);
+    }
+}
+```
+
+- 引用特定类型的任意对象的实例方法
+
+```java
+public class Test extends BaseTest{
+    public void test(){     
+        List<String> list = Arrays.asList("aaa","bbb","ccc");
+        
+        list.forEach(super::print);
+    }
+ 
+}
+class BaseTest{
+    public void print(String text){
+        System.out.println(text);
+    }
+}
+```
+
+- 引用构造函数
+
+```java
+public class Test{
+    public void test(){
+        InterfaceExample com = Example::new;
+        Example bean = com.create();
+        System.out.println(bean);
+    }
+    
+}
+interface InterfaceExample{
+    Example create();
+}
+```
 
 
 
