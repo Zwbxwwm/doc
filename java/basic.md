@@ -440,13 +440,53 @@ Optional<User> opt = Optional.ofNullable(user)
 
 
 
+## 8、Java自带的四大函数式接口
 
+- **supplier 提供者接口**
+- **consumer 消费者接口**
+- **function 函数式接口**
+- **predicate 断定式接口**
+- ***其他接口***
 
+> supplier 提供者
 
+​	该接口不接受参数，但是提供一个返回值，无私的奉献者，使用get()方法获得这个返回值
 
+```java
+Supplier<String> getInstance = () -> "HelloWorld!"
+```
 
+> consumer 消费者
 
+​	该接口接受一个参数，没有返回值，通俗理解就是把参数消费掉了，一般来说使用Consumer接口往往伴随着一些期望状态的改变或者事件的发生。
 
+```java
+Consumer<String> printer = s -> System.out.println(s);
+printer.accept("helloWorld!")
+```
+
+> function 函数式接口
+
+​	该接口接受一个T类型的参数，返回R类型的结果的方法的抽象，通过调用apply方法执行内容。
+
+```java
+Function<String,String> func = s -> s.trim();
+func.apply(" helloWorld!  ");
+```
+
+> predicate 断言式接口
+
+​	该接口接受一个参数，制定相应的规则进行判断，通过test()方法返回一个Boolean值
+
+```java
+Predicate<String> pre = s -> s.length() >= 0;
+pre.test("hello world!");
+```
+
+> 其他接口
+
+1. 类型限制接口： IntPredicate，LongPredicate，DoublePredicate，这几个接口，都是基于Predicate接口，不同的就是他们的泛型变成Integer，Long，Double，而IntConsumer，LongConsumer，DoubleConsumer比如这几个，对应的就是Consumer<Integer>，Consumer<Long>，Consumer<Double>，其余的都是一样的道理。
+2. 数量限制接口：有些接口需要接受两个参数，此类接口的所有名字前面都是附加上Bi，是Binary的缩写
 
 
 
