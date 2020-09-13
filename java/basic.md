@@ -488,9 +488,21 @@ pre.test("hello world!");
 1. 类型限制接口： IntPredicate，LongPredicate，DoublePredicate，这几个接口，都是基于Predicate接口，不同的就是他们的泛型变成Integer，Long，Double，而IntConsumer，LongConsumer，DoubleConsumer比如这几个，对应的就是Consumer<Integer>，Consumer<Long>，Consumer<Double>，其余的都是一样的道理。
 2. 数量限制接口：有些接口需要接受两个参数，此类接口的所有名字前面都是附加上Bi，是Binary的缩写
 
+## 9、**transient**关键字的意思
 
+将不需要序列化的属性前添加关键字**transient**,序列化对象的时候，这个属性就不会被序列化。（静态变量无法被序列化）
 
+**底层原理**
 
+java的序列化操作是将对象的状态储存到硬盘上去，等需要的时候就可以再把它读出来使用；所以transient的作用就是把修饰的字段固定在内存中进行操作而不会写到磁盘中里持久化。
+
+**被transient关键字修饰的变量仍然可以被序列化**
+
+Java序列化提供了两种方式
+
+一是实现Serializable接口
+
+二是实现Exteranlizable接口，需要重写writeExternal和readExternal方法，它的效率比Serializable高一些，并且可以决定哪些属性需要序列化
 
 
 
