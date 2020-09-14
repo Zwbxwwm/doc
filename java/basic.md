@@ -504,9 +504,18 @@ Java序列化提供了两种方式
 
 二是实现Exteranlizable接口，需要重写writeExternal和readExternal方法，它的效率比Serializable高一些，并且可以决定哪些属性需要序列化
 
+## 10、什么是jetty？
 
+jetty是一个开源的servlet容器，基于Java的web容器，例如JSP和servlet提供运行环境，jetty是使用java语言编写的，它的API是以一组JAR包的形式发布。开发人员可以将Jetty容器实例化成一个对象，可以迅速为一些独立的java应用提供网络和web连接。
 
+<font color="#f15b6c">**Jetty就是一个开源的HTTP服务器和Servlet引擎**</font>，比如ActiveMQ、Maven、Spark等都应用了Jetty。
 
+## 11、为什么使用Jetty
+
+- 异步的Servlet,支持更高的并发量
+- 模块化的设计，更加灵活，更容易定制，也意味着更高的资源利用率
+- 面对大量长连接业务场景下，Jetty默认采用NIO模型是更好的选择
+- 将Jetty嵌入到应用中，使一个普通英勇可以快速支持http服务
 
 
 
