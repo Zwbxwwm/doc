@@ -1,6 +1,6 @@
 ## 消息队列
 
-### JMS与AMQP
+### 1、JMS与AMQP
 
 - AMQP 为消息定义了线路层（wire-level protocol）的**协议**，而JMS所定义的是**API规范**。在 Java 体系中，多个client均可以通过JMS进行交互，不需要应用修改代码，但是其对跨平台的支持较差。而AMQP天然具有**跨平台**、**跨语言**特性。
 - JMS 支持TextMessage、MapMessage 等复杂的消息类型；而 AMQP 仅支持 byte[] 消息类型（复杂的类型可序列化后发送）。
@@ -35,7 +35,7 @@ ActiveMQ 就是基于 JMS 规范实现的。
 
 RabbitMQ 就是基于 AMQP 协议实现的
 
-### 常用消息队列对比
+2、常用消息队列对比
 
 - ActiveMQ 的社区算是比较成熟，但是较目前来说，ActiveMQ 的性能比较差，而且版本迭代很慢，不推荐使用。
 
@@ -52,5 +52,12 @@ RabbitMQ 就是基于 AMQP 协议实现的
 时效性 | RabbitMQ 基于erlang开发，所以并发能力很强，性能极其好，延时很低，达到微秒级。其他三个都是 ms 级。
 功能支持 |除了 Kafka，其他三个功能都较为完备。 Kafka 功能较为简单，主要支持简单的MQ功能，在大数据领域的实时计算以及日志采集被大规模使用，是事实上的标准
 消息丢失 | ActiveMQ 和 RabbitMQ 丢失的可能性非常低， RocketMQ 和 Kafka 理论上不会丢失。
+
+
+
+### 2、@Builder的用法------lombok注解
+
+
+
 
 

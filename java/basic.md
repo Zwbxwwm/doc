@@ -517,5 +517,171 @@ jetty是一个开源的servlet容器，基于Java的web容器，例如JSP和serv
 - 面对大量长连接业务场景下，Jetty默认采用NIO模型是更好的选择
 - 将Jetty嵌入到应用中，使一个普通英勇可以快速支持http服务
 
+## 12、java的定时任务
+
+java系统中主要有三种方式来实现定时任务
+
+1. Timer和TimerTask
+2. ScheduledExecutorService
+3. 三方框架Quartz
+
+- **Timer和TimerTask**
+
+***demo***:
+
+```java
+public static void main(String[] args) throws Interruption{
+    Timer timer = new Timer();
+    timer.schedule(new TimerTask(){
+        @Override
+        public void run(){
+            System.out.println("hello")
+        }
+    },1000);
+    Thread.slepp(2000);
+    timer.cancel();
+}
+```
+
+这种方式的定时任务主要用到两个类，Timer和TimerTask；其中TimerTask继承接口Runnable，抽象的描述一种任务类型，我们只要重写实现它的run方法就可以实现自定义任务。
+
+Timer类就是用于定时任务调度的核心类，上述代码我们调用schedule并指定延时1000毫秒，所以上述代码会在一秒钟后完成打印操作，接着程序结束。
+
+<u>***内部逻辑***</u>
+
+Timer接口里面，存在着两个核心的字段
+
+```java
+/**
+*队列，内部由动态数组实现的最小堆结构——优先队列。优先级参考下一次执行时间，越快执行就排在越前面
+*/
+private final TaskQueue queue = new TaskQueue();
+
+/**
+*TimerThread继承Thread并重写了其run方法，该线程实例将在构建Timer实例的时候启动。run方法内部会循环的从队列中取*任务
+*/
+private final TimerThread thread = new TimerThread(queue);
+
+```
+
+Timer中用于配置一个定时任务进任务队列的方法
+
+```java
+//在时刻time执行任务
+schedule(TimeTask task,Date time);
+
+//延时 delay毫秒后执行任务
+schedule(TimeTask task,long delay);
+
+//固定延时重复执行，firstTime为首次执行时间
+//往后每间隔period毫秒执行一次
+schedule(TimeTask task,Date firstTime,long period);
+
+//固定延迟重复执行
+//首次执行时间为当前时间延时delay毫秒
+schedule(TimeTask task,long delay,long period);
+
+//固定频率重复执行，每过period毫秒执行一次
+scheduleAtFixedRate(TimeTask task,Date firstTime,long period);
+
+//固定频率重复执行
+scheduleAtFixedRate(TimeTask task,long delay,long period);
+```
+
+固定延时和固定频率
+
+固定延时：以任务的上一次实际执行时间做参考，往后延时period毫秒。
+
+固定频率：任务的往后每一次执行时间都在任务提交的那一刻得到了确定，无论上一次的任务是否意外延时，定时定点执行下一次的任务。
+
+整个方法的逻辑：
+
+1. 首先使用任务队列的内置对象锁，锁住个队列
+2. 接着在去锁住我们的task，并修改内部的一些属性字段值，设置下一次执行的时间为delay
+3. 然后将task添加到任务队列，其中add方法内部会进行最小堆重构
+4. 判断如果自己就是队列的第一个任务，那么将唤醒Timer中阻塞了的任务线程
+
+***Timer的劣势***
+
+1. Timer的背后只有一个线程，不管有多少个任务，只有一个工作线程，效率上必打折扣
+2.  限于单线程，如果第一任务逻辑上死循环了，后续的任务一个也得不到执行，稳定性差
+
+- **ScheduleExecutorService**
+
+整体来说,ScheduledExecutorService区别于Timer的地方就在于前者依赖线程池来执行任务，而任务本身会判断是什么类型的任务，需要重复执行的在任务执行结束后会被重新添加到任务队列
+
+- 第三方库Quartz
+
+体系结构：
+
+1. 调度器：scheduler
+2. 任务：JobDetail
+3. 触发器：Trigger，包括SimpleTrigger和CronTrigger
+
+***demo***
+
+```java
+//待执行任务
+public class HelloWorldJob implements Job {
+    @Override
+    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+        String strTime = new SimpleDateFormat("HH-mm-ss").format(new Date());
+        System.out.println( strTime + ":Hello World！");
+    }
+}
+```
+
+
+
+```java
+//执行任务
+public class MyScheduler {
+    public static void main(String[] args) throws SchedulerException {
+        //创建调度器Schedule
+        SchedulerFactory schedulerFactory = new StdSchedulerFactory();
+        Scheduler scheduler = schedulerFactory.getScheduler();
+
+        //创建JobDetail实例，并与HelloWordlJob类绑定
+        JobDetail jobDetail = JobBuilder.newJob(HelloWorldJob.class).withIdentity("job1", "jobGroup1")
+                .build();
+
+        //创建触发器Trigger实例(立即执行，每隔1S执行一次)
+        Trigger trigger = TriggerBuilder.newTrigger()
+                .withIdentity("trigger1", "triggerGroup1")
+                .startNow()
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule().withIntervalInSeconds(1).repeatForever())
+                .build();
+
+        //开始执行
+        scheduler.scheduleJob(jobDetail, trigger);
+        scheduler.start();
+    }
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
