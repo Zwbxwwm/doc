@@ -316,8 +316,10 @@ suffixOverrides：指定去除多余的后缀内容
     FROM student
     <include refid="Example_Where_Clause" />
 </select>
+```
 
-
+## 4、分页查询
+```
 <!-- 分页查询 -->
 <select id="select" resultMap="BaseResultMap">
     select * from (
@@ -337,16 +339,16 @@ suffixOverrides：指定去除多余的后缀内容
         ) table_alias
     where table_alias.rowno>#{pageNum}
 </select>
+```
 
+## 5、根据条件删除
 
-<!-- 根据条件删除 -->
+```
 <delete id="deleteByEntity" parameterType="java.util.Map">
     DELETE FROM student
     <include refid="Example_Where_Clause" />
 </delete>
 ```
-
-## 4、分页查询
 
 
 
