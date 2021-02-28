@@ -370,43 +370,127 @@
 
 ------
 
-## 11、线程池详解
+## 11、ThreadLocal
 
-![](d:\user\01397327\desktop\doc\images\java\线程池详解.webp)
+### ThreadLocal实现原理
 
-**线程池优点：**
+![ThreadLocal实现原理](..\images\java\ThreadLocal实现原理.png)
 
-- 降低系统资源消耗，通过重用已存在的线程，降低线程创建和销毁造成的消耗
-- 提高系统响应速度，当有任务到达时，通过复用已存在的线程，无需等待新线程的创建便立即执行
-- 方便线程并发数的管控。因为线程如果无线创建会导致内存占用过多而产生OOM，并且会造成cpu过度切换
-- 提供更加强大的功能，延时定时线程池
+ThreadLocal的实现是这样的：每个Thread 维护一个 ThreadLocalMap 映射表，这个映射表的 key 是 ThreadLocal实例本身，value 是真正需要存储的 Object。
 
-**线程池的主要参数：**
+也就是说 ThreadLocal 本身并不存储值，它只是作为一个 key 来让线程从 ThreadLocalMap 获取 value。值得注意的是图中的虚线，表示 ThreadLocalMap 是使用 ThreadLocal 的弱引用作为 Key 的，弱引用的对象在 GC 时会被回收
 
-- **<font color="\#375830">corePoolSize（线程池基本大小）：</font>**当向线程池提交一个任务时，若线程已创建的线程数小于corePoolSize，即便此时有空闲的线程，也会通过创建一个线程来执行该任务，直到已创建的线程数大于或等于corePoolSize时，一般上述情况只会出现在线程池刚启动的时候，通过利用提交新任务来创建和启动线程，也可以通过prestartCoreThread()或prestartAllCoreThread()方法来提前增加线程池中的基本线程数量
-- **<font color="\#375830">maximumPoolSize（线程池最大大小）：</font>**线程池所允许的最大线程数。当队列满了，且已经创建的线程数小于maximumPoolSize，则线程池会创建新的线程来执行任务。对于无界队列可以忽略此该参数。
-- **<font color="\#375830">keepAliveTime（线程存活时间）：</font>**当线程池中的线程数大于核心线程数时，线程的空闲时间如果超过线程存活时间，那么这个线程就会被销毁，直到线程池中线程数小于或等于核心线程数。
-- **<font color="\#375830">workQueue（任务队列）：</font>**用于传输和保存等待执行任务的阻塞队列
-- **<font color="\#375830">threadFactory（线程工厂）：</font>**用于创建新线程。threadFactory创建的线程也是采用new Thread()的方式，threadFactory创建的线程名都具有统一的风格：pool-m-thread-n
-- **<font color="\#375830">handler（策略）：</font>**当线程池和队列都满了之后，再加入线程池会执行此策略
+### ThreadLocal内存泄漏
 
+ThreadLocal内存泄漏的根源是：由于ThreadLocalMap的生命周期跟Thread一样长，如果没有手动删除对应key就会导致内存泄漏，而不是因为弱引用。
 
+### 如何避免ThreadLocal内存泄漏
+
+- **每次使用完ThreadLocal，都调用它的remove()方法，清除数据。**
+
+在使用线程池的情况下，没有及时清理ThreadLocal，不仅是内存泄漏的问题，更严重的是可能导致业务逻辑出现问题。所以，使用ThreadLocal就跟加锁完要解锁一样，用完就清理。
 
 
+## 12、线程池ExecutorService的理解和使用
 
+![线程池详解](..\images\java\线程池详解.webp)
 
+### **前言：**
 
+- 线程池存在的意义就在于以前创建线程是通过继承Thread，每次new Thread的时候都需要创建一个新的线程，性能差
 
+- 线程缺乏管理，可能存在无线创建线程的情况，占用过多系统资源导致死机或者oom；
+- Thread类缺少更多的功能，比如更多的执行、定期执行、线程中断
 
+### **优点：**
 
+- 重用存在的线程，减少对象的创建、消亡的开销、性能佳
+- 可以有效的控制最大并发线程数，提高系统资源利用率，同事可以避免过多资源竞争，避免阻塞
+- 提供定时执行、定期执行、单线程、并发数控制等功能
 
+![](d:\user\01397327\desktop\doc\images\java\线程池.jpg)
 
+### **创建线程池**
 
+四种创建方式：
 
+```java
+/* 
+ * 该方法返回一个固定线程数量的线程池，该线程池池中的线程数量始终不变。
+ * 当有一个新的任务提交时，线程池中若有空闲线程，则立即执行。
+ * 若没有，则新的任务会被暂存在一个任务队列中，待有线程空闲时，便处理在任务队列中的任务 
+ * 默认等待队列长度为Integer.MAX_VALUE
+ */
+ExecutorService fixedThreadPool = Executors.newFixedThreadPool(1);
 
+/* 
+ * 该方法返回一个只有一个线程的线程池。
+ * 若多余一个任务被提交到线程池，任务会被保存在一个任务队列中，等待线程空闲，按先入先出顺序执行队列中的任务
+ * 默认等待队列长度为Integer.MAX_VALUE
+ */
+ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
 
+/* 
+ * 该方法返回一个可根据实际情况调整线程数量的线程池。
+ * 线程池的线程数量不确定，但若有空闲线程可以复用，则会优先使用可复用的线程。
+ * 若所有线程均在工作，又有新任务的提交，则会创建新的线程处理任务。
+ * 所有线程在当前任务执行完毕后，将返回线程池进行复用
+ */
+ExecutorService newCachedThreadPool = Executors.newCachedThreadPool();
 
+/* 
+ * 该方法返回一个ScheduledExecutorService对象，线程池大小为1。
+ * ScheduledExecutorService接口在ExecutorService接口之上扩展了在给定时间内执行某任务的功能，
+ * 如在某个固定的延时之后执行，或者周期性执行某个任务
+ */
+ExecutorService newSingleThreadScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
+/*
+ * 该方法也返回一个ScheduledExecutorService对象，但该线程池可以指定线程数量
+ */
+ExecutorService newScheduledThreadPool = Executors.newScheduledThreadPool(1);
+```
 
+上述的创建线程的缺点：
 
+1>FixedThreadPool、SingleThreadPool
 
+允许的请求队列长度是Integer.MAX_VALUE，可能会堆积大量请求，从而导致OOM。
+
+2>CachedThreadPool、ScheduledThreadPool、SingThreadScheduledExecutor
+
+允许的创建线程数量为Integer.MAX_VALUE，可能会创建大量线程导致OOM
+
+### **ThreadPoolExecutor线程池类**
+
+线程池尽量采用ThreadPoolExecutor的方式进行创建；
+
+```java
+public ThreadPoolExector(int corePoolSize,
+                         int maximumPoolSize,
+                         long keepAliveTime,
+                         TimeUnit unit,
+                         BlockingQueue<Runnable> workQueue,
+                         ThreadFactory thradFactory,
+                         RejectedExecutionHandle handler);
+```
+
+- corePoolSize：提交一个任务到线程池的时候，线程池会新建一个线程执行任务，及时其他已有的线程处于空闲的状态的时候，线程池也会新建线程来执行任务，可调用线程池的prestartAllCoreThreads方法启动所有线程。
+- maximumPoolSize：线程允许创建的最大线程数，如果任务队列满了之后，线程池已创建的线程数小于最大线程数，则线程池就会创建新的线程用来执行任务，（无界任务队列忽略此参数）
+- keepAliveTime：当线程池的线程数量超过corePoolSize的时候，多余的空闲线程存活时间
+- unit：keepAliveTime的单位
+- workQueue：任务队列，有以下四种任务队列
+  1. ArrayBlockingQueue：基于数组结构的游街阻塞队列，此队列按照FIFO（先进先出）原则对元素记性排序
+  2. LinkedBlockingQueue：一个基于链表结构的阻塞队列，此队列按FIFO（先进先出）原则对元素进行排序，吞吐量通常要高于ArrayBlockingQueue。
+  3. SynchronousQueue：一个不储存元素的阻塞队列，每个插入操作必须等到另一个线程调用一出操作，否则插入操作一直处于阻塞状态
+  4. PriorityBlockingQueue：一个具有优先级的无线阻塞队列
+- threadFactory：线程工厂，用于创建线程，一般使用默认的即可，也可以通过定义线程工厂的给每个创建出来的线程设置更有意义的名字
+- handler：拒绝策略，当队列和线程池都满的情况下，又有新的任务进来的时候需要采取一种新的策略进行处理
+  1. AbortPolicy：直接抛出异常，组织系统正常工作
+  2. CallerRunPolicy：只要线程未关闭，该策略直接在调用者线程中，运行当前被丢弃的任务
+  3. DiscardOldPolicy：该策略将丢弃最老的一个请求，也就是即将被执行的一个任务，并尝试再次提交当前任务
+  4. DiscardPilicy：该策略默默地丢弃无法处理的任务
+  5. 可自定义RejectedExecutionHandler策略
+- **执行过程**
+
+![新线程池](..\images\java\新线程池.jpg)
