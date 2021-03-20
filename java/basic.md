@@ -1,22 +1,26 @@
 # JAVA基础
 ## 1、Java创建对象的4种方式
-### 使用new关键字
-### 使用clone方法
-### 使用反序列化
+- 使用new关键字
+- 使用clone方法
+- 使用反序列化
 
     序列化对象必须实现Serializable这个接口
     把对象转为字节序列的过程称为对象的序列化
     把字节序列恢复为对象的过程称为对象的反序列化
 
-### 使用反射机制
-- 使用Class类的newInstance方法，这个newInstance方法调用无参的构造函数创建对象。
+- 使用反射机制
+
+使用Class类的newInstance方法，这个newInstance方法调用无参的构造函数创建对象。
+
 ```java
 //创建方法1
 User user = (User)Class.forName("根路径.User").newInstance();　
 //创建方法2（用这个最好）
 User user = User.class.newInstance();
 ```
-- 使用Constructor类的newInstance方法，可以通过这个newInstance方法调用有参数的和私有的构造函数。
+
+使用Constructor类的newInstance方法，可以通过这个newInstance方法调用有参数的和私有的构造函数。
+
 ```java
 Constructor<User> constructor = User.class.getConstructor();
 User user = constructor.newInstance();
@@ -108,18 +112,55 @@ User user = constructor.newInstance();
 
 1. 判断一个数是不是2的次方：
 
-   ```java
-   
-   		if(((n-1)&n)==0){
-   			System.out.println("是2的整数次方");
-   		}else{
-   			System.out.println("不是2的整数次方");
-   		}
-   ```
+```java
+if(((n-1)&n)==0){
+    System.out.println("是2的整数次方");
+}else{
+    System.out.println("不是2的整数次方");
+}
+```
 
    
 
-2. <font color = "red">待更新</font>
+2. 不用临时变量交换两个数
+
+```java
+int a = 1, b = 2;
+a ^= b;
+b ^= a;
+a ^= b;
+```
+
+3. 利用或操作 | 和空格将英文字符转换为小写
+
+```java
+('a' | ' ') = 'a'
+('A' | ' ') = 'a'
+```
+
+4. 利用与操作 & 和下划线将英文字符转换为大写
+
+```java
+('b' & '_') = 'B'
+('B' & '_') = 'B'
+```
+
+5. 利用异或操作 ^ 和空格进行英文字符大小写互换
+
+```java
+('d' ^ ' ') = 'D'
+('D' ^ ' ') = 'd'
+```
+
+6. 判断两个数是否异号
+
+```java
+int a=1, b=-1;
+bool f = ((a ^ b) < 0);// true，表示异号
+
+int x = 3, y = 2;
+bool f = ((x ^ y) >= 0); // true, 表示同号
+```
 
 ------
 
