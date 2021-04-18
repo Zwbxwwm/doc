@@ -2,14 +2,106 @@
 
 ## 一、Java
 
+### Java基础
+
+#### 面向对象
+
+#### 抽象类与接口
+
+- 抽象类的特性
+
+  1. 使用abstract修饰，<font color = "red">`抽象方法只能是public，protected，不能是private（继承后无法被实现）`</font>
+  2. <font color = "red">抽象类无法直接创建对象，</font>必须子类继承实现抽象方法之后才能创建对象
+  3. 抽象类可以继承抽象类，子类必须复制继承父类抽象方法
+  4. 就算是只含有一个抽象方法的类也必须定义为抽象类
+
+- 接口类的特性
+
+  1. 接口使用interface关键字修饰，<font color = "red">接口可以包含变量，成员变量会被隐式标记成public static final</font>
+  2. 接口中的方法只能标记成public abstract，
+  3. 一个类可以继承多个接口，但是必须实现所有接口方法
+
+- 抽象类和接口类的区别
+
+  1. 抽象类可以实现成员方法的实现细节，而接口中只能存在public stract
+  2. 抽象类的成员变量可以是各种类型，但是接口类只能是public static final
+  3. 接口方法不能含有静态代码块和静态方法
+
+- <font color = "blue" size = "5">结论</font>
+
+  例子，抽象类可以定义一个人的固有属性，口眼耳鼻等，接口类只要是定义那些不是人人都有的东西—>打球，游泳等
+
+  1. 抽象类主要是定义某个领域的固定属性，也就是公共的部分，而接口定义的是这个领域的扩展
+  2. 当需要为一些类提供公共模块的时候，优先考虑抽象类，这样被子类继承即可使用，代码简洁
+  3. 当注重代码的扩展性和可维护性的时候应该优先考虑接口类型，接口是程序之间的协议，比抽象类的使用更加的安全 
+
+#### 内部类
+
+- 内部类的基本使用方法；内部类在使用情况上和基本的方法的使用情况差不多，
+
+  静态内部不可以使用非静态内部类，非静态内部类可以使用任何类但是不能定义静态变量
+
+  构造内部类：
+
+  ```java
+  OutterObject outterObject = new OutterObject(Constructor Parameters);
+  InnerObject innerObject = outterObject.new InnerObject(Constructor Parameters);
+  ```
+
+  
+
+- 内部类的优点：
+
+  1. 当要实现的一个接口和类里面的一个方法名完全一致就可以使用内部类来进行解决
+  2. 可以通过内部类和接口来解决Java无法进行多继承的问题
+  3. 提高封装性
+  4. 一个内部类可以访问创建它的外部类的变量，甚至是私有变量，这就为我们设计程序提供了更多的思路
+  5. <font color ="red">未完待续.........</font>
+
+#### Java的异常
+
+### Java常见关键字
+
+#### static
+
+#### transient
+
+将不需要序列化的属性前添加关键字**transient**,序列化对象的时候，这个属性就不会被序列化。（静态变量无法被序列化）
+
+**底层原理**
+
+java的序列化操作是将对象的状态储存到硬盘上去，等需要的时候就可以再把它读出来使用；所以transient的作用就是把修饰的字段固定在内存中进行操作而不会写到磁盘中里持久化。
+
+**被transient关键字修饰的变量仍然可以被序列化**
+
+Java序列化提供了两种方式
+
+一是实现Serializable接口
+
+二是实现Exteranlizable接口，需要重写writeExternal和readExternal方法，它的效率比Serializable高一些，并且可以决定哪些属性需要序列化
+
+#### volatile
+
+- volatile修饰的变量不允许线程内部缓存和重排序，即直接修改内存。
+
+- volatile只能让被他修饰内容具有可见性，但不能保证它具有原子性。
+
+- 在访问volatile变量时不会执行加锁操作，因此也就不会使执行线程阻塞.
+
+#### public、protected、private
+
 ### Java容器
+
+在 Java 中除了以 Map 结尾的类之外， 其他类都实现了 Collection 接口。
+
+![Java容器继承关系](images/java/java-collection-hierarchy.png)
 
 #### HashMap
 
 **重要字段**
 
 - TREEIFY_THRESHOLD = 8; 链表转化为红黑树的阈值
-- DEFAULT_INITIAL_CAPACITY = 1 << 4; 初始容量
+- DEFAULT_INITIAL_CAPACITY = 1 << 4; 初始容量: 16
 - DEFAULT_LOAD_FACTOR = 0.75f; 阈值，当元素个数占总容量比例超过该值，则进行resize()
 - threshold; 该值为capacity * loadfactor的计算结果
 
@@ -21,10 +113,23 @@ static final int hash(Object key) {
     return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
 }
 ```
-- HashMap中计算key在数组中的下标是通过hash(key) & (n - 1)得到的。
+- HashMap中计算key在数组中的下标是通过 **hash(key) & (n - 1)** 得到的。
 - 因为map容量始终是2次幂，n - 1的二进制数全为1，这样计算的下标就完全取决于hash(key)的结果，只要hash(key)能充分随机就好。
 
+**红黑树**
 
+一种特殊的二叉查找树。红黑树的每个节点上都有存储位表示节点的颜色，可以是红(Red)或黑(Black)
+
+红黑树的特性:
+（1）每个节点或者是黑色，或者是红色。
+（2）根节点是黑色。
+（3）每个叶子节点（NIL）是黑色。 ^[注意：这里叶子节点，是指为空(NIL或NULL)的叶子节点！]
+（4）如果一个节点是红色的，则它的子节点必须是黑色的。
+（5）从一个节点到该节点的子孙节点的所有路径上包含相同数目的黑节点。^[确保没有一条路径会比其他路径长出俩倍。因而，红黑树是相对是接近平衡的二叉树。]
+
+它的时间复杂度是O(logN)，一棵含有n个节点的红黑树的高度至多为2log(n+1).
+
+将红色的节点移到根节点；然后，将根节点设为黑色
 
 **HashMap多线程死循环**
 
@@ -34,6 +139,8 @@ Jdk1.8已经改为尾插法，但是仍然不建议在高并发的场景使用Ha
 #### ConcurrentHashMap
 
 ![ConcurrentHashMap](images/java/ConcurrentHashMap.webp)
+
+-------
 
 ### Java虚拟机
 
@@ -291,13 +398,13 @@ jvm虚拟机主要是为了解决程序中哪些需要回收、怎么回收、�
 ##### 三、类加载器
     类加载器负责加载所有的类，其为所有被载入内存中的类生成一个java.lang.Class实例对象。一旦一个类被加载如JVM中，同一个类就不会被再次载入了。正如一个对象有一个唯一的标识一样，一个载入JVM的类也有一个唯一的标识。在Java中，一个类用其全限定类名（包括包名和类名）作为标识；但在JVM中，一个类用其全限定类名和其类加载器作为其唯一标识。例如，如果在pg的包中有一个名为Person的类，被类加载器ClassLoader的实例kl负责加载，则该Person类对应的Class对象在JVM中表示为(Person.pg.kl)。这意味着两个类加载器加载的同名类：（Person.pg.kl）和（Person.pg.kl2）是不同的、它们所加载的类也是完全不同、互不兼容的。
 
-  JVM预定义有三种类加载器，当一个 JVM启动的时候，Java开始使用如下三种类加载器：
+JVM预定义有三种类加载器，当一个 JVM启动的时候，Java开始使用如下三种类加载器：
 
-1. 根类加载器（bootstrap class loader）:它用来加载 Java 的核心类，是用原生代码来实现的，并不继承自 java.lang.ClassLoader（负责加载$JAVA_HOME中jre/lib/rt.jar里所有的class，由C++实现，不是ClassLoader子类）。由于引导类加载器涉及到虚拟机本地实现细节，开发者无法直接获取到启动类加载器的引用，所以不允许直接通过引用进行操作。
+1. 根类加载器（BootstrapClassLoader）:它用来加载 Java 的核心类，是用原生代码来实现的，并不继承自 java.lang.ClassLoader（负责加载$JAVA_HOME中jre/lib/rt.jar里所有的class，由C++实现，不是ClassLoader子类）。由于引导类加载器涉及到虚拟机本地实现细节，开发者无法直接获取到启动类加载器的引用，所以不允许直接通过引用进行操作。
 
-2. 扩展类加载器（extensions class loader）：它负责加载JRE的扩展目录，lib/ext或者由java.ext.dirs系统属性指定的目录中的JAR包的类。由Java语言实现，父类加载器为null。
+2. 扩展类加载器（ExtClassLoader）：它负责加载JRE的扩展目录，lib/ext或者由java.ext.dirs系统属性指定的目录中的JAR包的类。由Java语言实现，父类加载器为null。
 
-3. 系统类加载器（system class loader）：被称为系统（也称为应用）类加载器，它负责在JVM启动时加载来自Java命令的-classpath选项、java.class.path系统属性，或者CLASSPATH环境变量所指定的JAR包和类路径。程序可以通过ClassLoader的静态方法getSystemClassLoader()来获取系统类加载器。如果没有特别指定，则用户自定义的类加载器都以此类加载器作为父加载器。由Java语言实现，父类加载器为ExtClassLoader。
+3. 系统类加载器（AppClassLoader）：被称为系统（也称为应用）类加载器，它负责在JVM启动时加载来自Java命令的-classpath选项、java.class.path系统属性，或者CLASSPATH环境变量所指定的JAR包和类路径。程序可以通过ClassLoader的静态方法getSystemClassLoader()来获取系统类加载器。如果没有特别指定，则用户自定义的类加载器都以此类加载器作为父加载器。由Java语言实现，父类加载器为ExtClassLoader。
 
     **类加载器加载Class大致要经过如下8个步骤：**
 
@@ -335,13 +442,102 @@ jvm虚拟机主要是为了解决程序中哪些需要回收、怎么回收、�
     1. 避免类的重复加载
     2. 防止核心API库被随意篡改：我们自己写的类会覆盖系统本身内部的类，造成系统内部程序的混乱，例如`java.lang.object`类
 
-### 数据结构
+-------
 
 ### 锁和多线程
 
+#### Syncronized和Lock
+
+**区别**
+
+1. synchronize的自动释放锁，但是Lock必须手动进行释放，所以这就引发一个问题，如果程序在中间抛出异常，那么相对于synchronize来说，Lock就不会进行unlock，所以每次的解锁都必须放进finally里面进行。
+
+2. Lock有共享锁的功能，所以可以设置读写锁来提高效率，但是synchronize不能。
+
+3. Lock锁的事代码块，而synchronize锁不只是代码块还可以是方法锁还有类锁。
+
+4. Lock可以知道线程有没有获取到锁，但是synchronize不能。
+
+##### Syncronized
+
+##### ReentrantLock
+
+#### TreadLocal
+
+TreadLocal是一个用来存储线程私有属性值的数据结构。
+
+##### ThreadLocal实现原理
+
+![ThreadLocal实现原理](images\java\ThreadLocal实现原理.png)
+
+ThreadLocal的实现是这样的：每个Thread 维护一个 ThreadLocalMap 映射表，这个映射表的 key 是 ThreadLocal实例本身，value 是真正需要存储的 Object。
+
+也就是说 ThreadLocal 本身并不存储值，它只是作为一个 key 来让线程从 ThreadLocalMap 获取 value。值得注意的是图中的虚线，表示 ThreadLocalMap 是使用 ThreadLocal 的弱引用作为 Key 的，弱引用的对象在 GC 时会被回收
+
+##### ThreadLocal内存泄漏
+
+ThreadLocal内存泄漏的根源是：由于ThreadLocalMap的生命周期跟Thread一样长，如果没有手动删除对应key就会导致内存泄漏，而不是因为弱引用。
+
+##### 如何避免ThreadLocal内存泄漏
+
+- **每次使用完ThreadLocal，都调用它的remove()方法，清除数据。**
+
+在使用线程池的情况下，没有及时清理ThreadLocal，不仅是内存泄漏的问题，更严重的是可能导致业务逻辑出现问题。所以，使用ThreadLocal就跟加锁完要解锁一样，用完就清理。
+
+
+#### Java中的锁
+
+##### 无锁、自旋锁、CAS
+
+##### 偏向锁
+
+##### 轻量级锁
+
+##### 重量级锁
+
+##### Syncronized锁升级
+
 #### 线程池
 
+##### **ThreadPoolExecutor线程池类**
+
+线程池尽量采用ThreadPoolExecutor的方式进行创建；
+
+```java
+public ThreadPoolExector(int corePoolSize,
+                         int maximumPoolSize,
+                         long keepAliveTime,
+                         TimeUnit unit,
+                         BlockingQueue<Runnable> workQueue,
+                         ThreadFactory thradFactory,
+                         RejectedExecutionHandle handler);
+```
+
+- corePoolSize：提交一个任务到线程池的时候，线程池会新建一个线程执行任务，及时其他已有的线程处于空闲的状态的时候，线程池也会新建线程来执行任务，可调用线程池的prestartAllCoreThreads方法启动所有线程。
+- maximumPoolSize：线程允许创建的最大线程数，如果任务队列满了之后，线程池已创建的线程数小于最大线程数，则线程池就会创建新的线程用来执行任务，（无界任务队列忽略此参数）
+- keepAliveTime：当线程池的线程数量超过corePoolSize的时候，多余的空闲线程存活时间
+- unit：keepAliveTime的单位
+- workQueue：任务队列，有以下四种任务队列
+  1. ArrayBlockingQueue：基于数组结构的游街阻塞队列，此队列按照FIFO（先进先出）原则对元素记性排序
+  2. LinkedBlockingQueue：一个基于链表结构的阻塞队列，此队列按FIFO（先进先出）原则对元素进行排序，吞吐量通常要高于ArrayBlockingQueue。
+  3. SynchronousQueue：一个不储存元素的阻塞队列，每个插入操作必须等到另一个线程调用一出操作，否则插入操作一直处于阻塞状态
+  4. PriorityBlockingQueue：一个具有优先级的无线阻塞队列
+- threadFactory：线程工厂，用于创建线程，一般使用默认的即可，也可以通过定义线程工厂的给每个创建出来的线程设置更有意义的名字
+- handler：拒绝策略，当队列和线程池都满的情况下，又有新的任务进来的时候需要采取一种新的策略进行处理
+  1. AbortPolicy：直接抛出异常，组织系统正常工作
+  2. CallerRunPolicy：只要线程未关闭，该策略直接在调用者线程中，运行当前被丢弃的任务
+  3. DiscardOldPolicy：该策略将丢弃最老的一个请求，也就是即将被执行的一个任务，并尝试再次提交当前任务
+  4. DiscardPilicy：该策略默默地丢弃无法处理的任务
+  5. 可自定义RejectedExecutionHandler策略
+- **执行过程**
+
+![新线程池](images\java\新线程池.jpg)
+
+-------
+
 ### Java设计模式
+
+-------
 
 ### Spring
 
@@ -516,6 +712,8 @@ DispatcherServlet
 - DispatcherServlet 通过多层继承 HttpServlet ，使用 Servlet API 来对 HTTP 请求进行响应。
 - 它会对 MVC 的其他模块进行初始化，比如 HandlerMapper 和 ViewResolver 等。具有自己的 IoC 容器。
 - 将 HTTP 请求转发给 HandlerAdapter 返回 handler 对象，也即 Controller ，执行相应的业务代码后，返回 ModelAndView 对象。将 ModelAndView 对象转发给 ViewResolver 渲染 HTML 页面。
+
+-------
 
 ## 二、计算机操作系统
 
@@ -700,7 +898,7 @@ DispatcherServlet
 
 
 #### I/O 访问
-	
+
 对于一次IO访问（以read举例），数据会先被拷贝到操作系统内核的缓冲区中，然后才会从操作系统内核的缓冲区拷贝到应用程序的地址空间。所以说，当一个read操作发生时，它会经历两个阶段：
   1. 等待数据准备 (Waiting for the data to be ready)
   2. 将数据从内核拷贝到进程中 (Copying the data from the kernel to the process)
@@ -719,6 +917,7 @@ DispatcherServlet
 - 准备数据（对于网络IO来说，很多时候数据在一开始还没有到达。比如，还没有收到一个完整的UDP包。这个时候kernel就要等待足够的数据到来）。这个过程需要等待，也就是说数据被拷贝到操作系统内核的缓冲区中是需要一个过程的。
 - 用户进程阻塞（当然，是进程自己选择的阻塞）。当 kernel 一直等到数据准备好了，它就会将数据从 kernel 中拷贝到用户内存，然后 kernel 返回结果，用户进程才解除 block 的状态，重新运行起来。
 		
+
 所以，blocking IO的特点就是在IO执行的两个阶段都被block了。
 		
 优势	1. 每线程，每连接
@@ -789,15 +988,15 @@ epoll_wait()
 
 LT（level trigger）模式
   当epoll_wait检测到描述符事件发生并将此事件通知应用程序，应用程序可以不立即处理该事件。下次调用epoll_wait时，会再次响应应用程序并通知此事件。
-  
+
   同时支持 block 和 no-block socket 。内核告诉你一个文件描述符是否就绪了，然后你可以对这个就绪的fd进行IO操作。如果你不作任何操作，内核还是会继续通知你的。
 ET（edge trigger）模式
   当epoll_wait检测到描述符事件发生并将此事件通知应用程序，应用程序必须立即处理该事件。如果不处理，下次调用epoll_wait时，不会再次响应应用程序并通知此事件。
 
   只支持 no-block socket 。
-  
+
   当描述符从未就绪变为就绪时，内核通过 epoll 告诉你。然后它会假设你知道文件描述符已经就绪，并且不会再为那个文件描述符发送更多的就绪通知，直到你做了某些操作导致那个文件描述符不再为就绪状态了(比如，你在发送，接收或者接收请求，或者发送接收的数据少于一定量时导致了一个EWOULDBLOCK 错误）。
-  
+
   ET模式在很大程度上减少了epoll事件被重复触发的次数，因此效率要比LT模式高。
 
 ## 三、计算机网络
@@ -941,6 +1140,10 @@ TCP与UDP区别总结：
 
 ## 四、数据库
 
+数据库分为关系型数据和非关系型数据库
+
+
+
 ### 关系型数据库（MySQL）
 
 #### 一、三大范式
@@ -963,7 +1166,7 @@ TCP与UDP区别总结：
 ![avatar](images/database/3NF.png)
 很明显，学院电话是一个冗余字段，因为存在依赖传递：（学号）→（学生）→（学院）→（学院电话）
 
-#### 二、SQL语句执行原理：
+#### 二、SQL原理：
 
 - 第一步：将SQL语句发送到服务端执行
 - 第二步：语句解析
@@ -1000,7 +1203,7 @@ TCP与UDP区别总结：
 9. 为事务建立回滚段。
 10. 改写DB Buffer块的数据内容。
 
-#### 三、事务隔离
+#### 三、事务
 
 ##### 1、事务的特性（ACID）
 
@@ -1049,9 +1252,47 @@ MySQL默认为Repeatable-read（可重复读），Oracle默认为Read-commited�
 
 强制的进行排序，在每个读读数据行上添加共享锁。会导致大量超时现象和锁竞争。
 
-#### 四、MySQL索引
+##### 4、事务执行的过程
+
+![事务执行过程](images\database\事务执行过程.png)
+
+#### 四、数据库的锁
+
+##### 分类
+
+###### 粒度分类
+
+- **表级锁**： MySQL中锁定**粒度最⼤**的⼀种锁，对当前操作的整张表加锁，实现简单，资源消耗也比较少，加锁快，不会出现死锁。其触发锁冲突的概率最⾼，并发度最低。（InnoDB会在查询语句命中任何索引时使用表级锁）
+- **⾏级锁**： MySQL中锁定**粒度最⼩**的⼀种锁，只针对当前操作的⾏进⾏加锁。 ⾏级锁能⼤⼤减少数据库操作的冲突。其并发度⾼，但加锁的开销也最⼤，加锁慢，会出现死锁。InnoDB支持的行级锁，包括如下几种。
+  - Record Lock: 对索引项加锁，锁定符合条件的行。其他事务不能修改和删除加锁项；
+  - Gap Lock: 对索引项之间的“间隙”加锁，锁定记录的范围（对第一条记录前的间隙或最后一条将记录后的间隙加锁），不包含索引项本身。其他事务不能在锁范围内插入数据，这样就防止了别的事务新增幻影行。
+  - Next-key Lock： 锁定索引项本身和索引范围。即Record Lock和Gap Lock的结合。可解决幻读问题。
+- **页级锁**： MySQL中锁定粒度介于行级锁和表级锁中间的一种锁。表级锁速度快，但冲突多；行级冲突少，但速度慢。页级进行了折衷，一次锁定相邻的一组记录。BDB支持页级锁。开销和加锁时间界于表锁和行锁之间，会出现死锁。锁定粒度界于表锁和行锁之间，并发度一般。
+
+###### 读写分类
+
+- **共享锁（Share Locks，S锁，读锁）**，其他用户可以并发读取数据，但任何事务都不能获取数据上的排他X锁，直到已释放所有共享锁。
+
+- **排它锁（(Exclusive lock，X锁，写锁）**，若事务T对数据对象A加上X锁，则只允许T读取和修改A，其它任何事务都不能再对A加任何类型的锁，直到T释放A上的锁。它防止任何其它事务获取资源上的锁，直到在事务的末尾将资源上的原始锁释放为止。在更新操作(INSERT、UPDATE 或 DELETE)过程中始终应用排它锁。
+
+- InnoDB另外的两个**表级锁**：
+
+  - **意向共享锁（IS）**： 表示事务准备给数据行记入共享锁，事务在一个数据行加共享锁前必须先取得该表的IS锁。
+
+  - **意向排他锁（IX）**： 表示事务准备给数据行加入排他锁，事务在一个数据行加排他锁前必须先取得该表的IX锁。
+
+  注意：
+
+  - IS、IX锁表示的是一种意向，仅仅表示事务正在读或写某一行记录，在真正加行锁时才会判断是否冲突。意向锁是InnoDB自动加的，不需要用户干预。
+  - IX，IS是表级锁，只会和表级的X，S锁发生冲突。
+
+##### MVCC
+
+#### 五、MySQL索引
 
 **索引**是存储引擎快速找到记录的一种数据结构。
+
+##### 索引的优缺点
 
 ##### 索引的数据结构
 
@@ -1075,6 +1316,8 @@ BTree是一种平衡多叉树，每个节点包含的数据数目称为度，二
 
 ###### Hash索引
 
+
+
 ##### 索引类型
 
 1. 主键索引 Primary Key
@@ -1097,39 +1340,9 @@ BTree是一种平衡多叉树，每个节点包含的数据数目称为度，二
 
 ![索引优化原则](images/database/索引优化原则.png)
 
+最左前缀原则
+
 ##### 聚簇索引和非聚簇索引
-
-### 数据库的锁
-
-#### 分类
-
-##### 粒度分类
-
-- **表级锁**： MySQL中锁定**粒度最⼤**的⼀种锁，对当前操作的整张表加锁，实现简单，资源消耗也比较少，加锁快，不会出现死锁。其触发锁冲突的概率最⾼，并发度最低。（InnoDB会在查询语句命中任何索引时使用表级锁）
-- **⾏级锁**： MySQL中锁定**粒度最⼩**的⼀种锁，只针对当前操作的⾏进⾏加锁。 ⾏级锁能⼤⼤减少数据库操作的冲突。其并发度⾼，但加锁的开销也最⼤，加锁慢，会出现死锁。InnoDB支持的行级锁，包括如下几种。
-  - Record Lock: 对索引项加锁，锁定符合条件的行。其他事务不能修改和删除加锁项；
-  - Gap Lock: 对索引项之间的“间隙”加锁，锁定记录的范围（对第一条记录前的间隙或最后一条将记录后的间隙加锁），不包含索引项本身。其他事务不能在锁范围内插入数据，这样就防止了别的事务新增幻影行。
-  - Next-key Lock： 锁定索引项本身和索引范围。即Record Lock和Gap Lock的结合。可解决幻读问题。
-- **页级锁**： MySQL中锁定粒度介于行级锁和表级锁中间的一种锁。表级锁速度快，但冲突多；行级冲突少，但速度慢。页级进行了折衷，一次锁定相邻的一组记录。BDB支持页级锁。开销和加锁时间界于表锁和行锁之间，会出现死锁。锁定粒度界于表锁和行锁之间，并发度一般。
-
-##### 读写分类
-
-- **共享锁（Share Locks，S锁，读锁）**，其他用户可以并发读取数据，但任何事务都不能获取数据上的排他X锁，直到已释放所有共享锁。
-
-- **排它锁（(Exclusive lock，X锁，写锁）**，若事务T对数据对象A加上X锁，则只允许T读取和修改A，其它任何事务都不能再对A加任何类型的锁，直到T释放A上的锁。它防止任何其它事务获取资源上的锁，直到在事务的末尾将资源上的原始锁释放为止。在更新操作(INSERT、UPDATE 或 DELETE)过程中始终应用排它锁。
-
-- InnoDB另外的两个**表级锁**：
-
-  - **意向共享锁（IS）**： 表示事务准备给数据行记入共享锁，事务在一个数据行加共享锁前必须先取得该表的IS锁。
-
-  - **意向排他锁（IX）**： 表示事务准备给数据行加入排他锁，事务在一个数据行加排他锁前必须先取得该表的IX锁。
-
-  注意：
-
-  - IS、IX锁表示的是一种意向，仅仅表示事务正在读或写某一行记录，在真正加行锁时才会判断是否冲突。意向锁是InnoDB自动加的，不需要用户干预。
-  - IX，IS是表级锁，只会和表级的X，S锁发生冲突。
-
-#### MVCC
 
 
 **MySQL和Oracle的区别**
@@ -1155,3 +1368,172 @@ MySQL是repeatable read的隔离级别，而Oracle是read commited的隔离级�
 mysql对sql语句有很多非常实用而方便的扩展，比如limit功能(分页)，insert可以一次插入多行数据，replace 语句；Oracle在这方面感觉更加稳重传统一些，Oracle的分页是通过伪列和子查询完成的，插入数据只能一行行的插入数据。
 
 ### 非关系型数据库（Redis）
+
+#### Redis基本介绍
+
+简单来说 **Redis 就是一个使用 C 语言开发的数据库**，不过与传统数据库不同的是 **Redis 的数据是存在内存中的** ，也就是它是内存数据库，所以读写速度非常快，因此 Redis 被广泛应用于缓存方向。
+
+另外，**Redis 除了做缓存之外，Redis 也经常用来做分布式锁，甚至是消息队列。**
+
+##### Redis单线程模型
+
+#### Redis基本数据类型
+
+##### String
+
+##### List
+
+##### hash
+
+##### set
+
+##### sorted set
+
+##### bitmap
+
+#### Redis底层数据结构
+
+##### list链表
+
+##### dict哈希表
+
+##### ZSkipList跳表
+
+##### intSet整数集合
+
+##### zipList压缩集合
+
+#### Redis内存淘汰机制
+
+Redis 提供 6 种数据淘汰策略：
+
+1. **volatile-lru（least recently used）**：从已设置过期时间的数据集（server.db[i].expires）中挑选最近最少使用的数据淘汰
+2. **volatile-ttl**：从已设置过期时间的数据集（server.db[i].expires）中挑选将要过期的数据淘汰
+3. **volatile-random**：从已设置过期时间的数据集（server.db[i].expires）中任意选择数据淘汰
+4. **allkeys-lru（least recently used）**：当内存不足以容纳新写入数据时，在键空间中，移除最近最少使用的 key（这个是最常用的）
+5. **allkeys-random**：从数据集（server.db[i].dict）中任意选择数据淘汰
+6. **no-eviction**：禁止驱逐数据，也就是说当内存不足以容纳新写入数据时，新写入操作会报错。这个应该没人使用吧！
+
+4.0 版本后增加以下两种：
+
+1. **volatile-lfu（least frequently used）**：从已设置过期时间的数据集(server.db[i].expires)中挑选最不经常使用的数据淘汰
+2. **allkeys-lfu（least frequently used）**：当内存不足以容纳新写入数据时，在键空间中，移除最不经常使用的 key
+
+##### 判断数据过期
+
+##### 过期删除策略
+
+#### Redis分布式锁
+
+##### 加锁
+
+  setnx（key，1）  
+
+##### 解锁
+
+  del（key）  
+
+##### 锁超时
+
+  expire（key，  30）  
+
+##### 问题
+
+##### setnx和expire的非原子性
+
+节点1加锁后，还未执行expire()就宕机，死锁
+
+###### 解决方案
+
+setnx后续支持传入超时参数，或者写lua脚本实现原子性
+
+##### del 导致误删
+
+节点1加锁并设置超时时间30s，由于运行很慢，超过30s后，锁自动过期。节点2获得锁，此后节点1完成后del锁，其实是删除掉了节点2的锁 
+
+###### 解决方案
+
+1. 令value为线程ID，删除锁时验证是自己的锁（判断是否是自己的锁，此操作非原子性，需要使用lua脚本）
+2. 每个线程开启一个守护线程，当锁快要过期的时候，更新当前锁的expire时间
+
+#### Redis事务
+
+##### 事务的三个阶段
+
+###### 事务开始
+
+客户端发送 MULTI 命令标志事务开始，服务端返回 OK 。
+
+###### 命令入队
+
+当一个客户端处于非事务状态时， 这个客户端发送的命令会立即被服务器执行。
+
+当一个客户端切换到事务状态之后， 服务器会根据这个客户端发来的不同命令执行不同的操作：
+
+- 如果客户端发送的命令为 EXEC 、 DISCARD 、 WATCH 、 MULTI 四个命令的其中一个， 那么服务器立即执行这个命令。
+- 如果客户端发送其他命令，     那么服务器并不立即执行这个命令， 而是**将这个命令放入一个事务队列**里面， 然后向客户端返回 QUEUED 回复。
+
+###### 事务队列
+
+每个客户端都维护一个事务状态：
+
+```C
+	typedef struct redisClient {
+	  ...
+	  // 事务状态
+	  multiState mstate;      /* MULTI/EXEC state */
+	  ...
+	} redisClient;
+```
+事务状态包含一个事务队列， 以及一个已入队命令的计数器 ：
+
+```C
+	typedef struct multiState {
+	  // 事务队列，FIFO 顺序
+	  multiCmd *commands;
+	  // 已入队命令计数
+	  int count;
+	} multiState;
+```
+事务队列是一个 multiCmd 类型的数组， 数组中的每个 multiCmd 结构都保存了一个已入队命令的相关信息， 包括指向命令实现函数的指针， 命令的参数， 以及参数的数量：
+
+```C
+	typedef struct multiCmd {
+	  // 参数
+	  robj **argv;
+	  // 参数数量
+	  int argc;
+	  // 命令指针
+	  struct redisCommand *cmd;
+	} multiCmd;
+```
+
+##### 缓存与数据库的一致性
+
+##### Redis持久化机制
+
+#### 缓存击穿
+
+#### 缓存雪崩
+
+--------
+
+## 五、系统设计
+
+### 分布式
+
+#### CAP理论
+
+在分布式的存储架构中，严格一致性与可用性需要互相取舍，**一个分布式系统不可能同时满足C(一致性)、A(可用性)、P(分区容错性)**三个基本需求，并且最多只能满足其中的两项。对于一个分布式系统来说，分区容错是基本需求，否则不能称之为分布式系统，因此需要在C和A之间寻求平衡
+ **`C(Consistency)`一致性**
+ 一致性是指更新操作成功并返回客户端完成后，所有节点在同一时间的数据完全一致。与ACID的C完全不同
+ **`A(Availability)`可用性**
+ 可用性是指服务一直可用，而且是正常响应时间。
+ **`P(Partition tolerance)`分区容错性**
+ 分区容错性是指分布式系统在遇到某节点或网络分区故障的时候，仍然能够对外提供满足一致性和可用性的服务。
+
+### 微服务
+
+### 高并发
+
+### 高可用
