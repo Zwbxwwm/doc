@@ -110,7 +110,7 @@ Java序列化提供了两种方式
 ```java
 static final int hash(Object key) {
     int h;
-    return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
+    return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
 }
 ```
 - HashMap中计算key在数组中的下标是通过 **hash(key) & (n - 1)** 得到的。
@@ -175,7 +175,9 @@ Jdk1.8已经改为尾插法，但是仍然不建议在高并发的场景使用Ha
 
 Java虚拟机栈(JVM Stack)是线程私有的，生命周期与线程同进同退。
 
-每个java方法在执行时都会创建一个栈帧(Stack Frame)用于存储**局部变量表、操作数栈、动态链接、方法出口等信息**。每一个方法从调用直至执行结束，就对应着一个栈帧从虚拟机栈中入栈到出栈的过程。
+每个java方法在执行时都会创建一个**栈帧**(Stack Frame)用于存储**局部变量表、操作数栈、动态链接、方法出口等信息**。
+
+**每一个方法从调用直至执行结束，就对应着一个栈帧从虚拟机栈中入栈到出栈的过程**。
 
 **局部变量表**：存放了编译期可知的各种基本类型(boolean、byte、char、short、int、float、long、double)、对象引用(reference 类型)和 returnAddress 类型(指向了一条字节码指令的地址)
 
@@ -1371,6 +1373,8 @@ MySQL默认为Repeatable-read（可重复读），Oracle默认为Read-commited�
   - IX，IS是表级锁，只会和表级的X，S锁发生冲突。
 
 ##### MVCC
+
+
 
 #### 五、MySQL索引
 
