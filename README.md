@@ -146,9 +146,11 @@ Jdk1.8已经改为尾插法，但是仍然不建议在高并发的场景使用Ha
 
 #### JVM内存模型
 
-![JVM内存模型](images/java/JVM_memory.jpg)
+![JVM1.7内存模型](images/java/JVM_memory.png)
 
 1.8同1.7比，最大的差别就是：元数据区取代了永久代。
+
+![JVM1.8内存模型](images/java/JVM_memory.jpg)
 
 元空间的本质和永久代类似，都是对JVM规范中方法区的实现。
 
@@ -658,6 +660,15 @@ Java 中不能从静态上下文访问非静态数据只是因为非静态变量
 
 #### SpringBean
 
+bean规范如下：
+
+1. 所有属性为private
+2. 提供默认构造方法
+3. 提供getter和setter
+4. 实现serializable接口
+
+**SpringBean的作用域**
+
 [bean的作用域scope](https://blog.csdn.net/w_linux/article/details/80069039)
 
 #### Spring IoC
@@ -665,6 +676,16 @@ Java 中不能从静态上下文访问非静态数据只是因为非静态变量
 [Spring Bean/IOC](https://www.awaimai.com/2596.html)
 
 来自<[BeanDefinition的资源定位过程.md](https://github.com/doocs/source-code-hunter/blob/master/docs/Spring/IoC/1、BeanDefinition的资源定位过程.md)>
+
+**IOC(接口）**
+1. IOC思想基于IOC容器完成，IOC容器底层就是对象工厂
+2. Spring提供IOC容器实现两种方式：(两个接口）
+	- BeanFactory:
+	  - IOC容器基本实现，是Spring内部的使用接口，不提供开发人员进行使用
+	  - 加载配置文件时候不会创建对象，在获取对象（使用）才去创建对象
+	- ApplicationContext:
+	  - BeanFactory接口的子接口，提供更多更强大的功能，一般由开发人员进行使用
+	  - 加载配置文件时候就会把在配置文件对象进行创建
 
 **BeanDefinition资源定位（ refresh() 方法）**
 
@@ -701,8 +722,8 @@ Java 中不能从静态上下文访问非静态数据只是因为非静态变量
 - createBean() 和 doCreateBean()
   - doCreateBean() 中主要有 createBeanInstance() 和 populateBean() 两个方法，分别用于生成 bean 所包含的 Java 对象，以及处理 bean 对象之间的依赖关系。
   - 在 doCreateBean() 中，有 initiate() 方法真正实例化 bean 对象，采用了两种策略来实例化 bean 对象： Java 反射机制和 CGLIB 。
-  - 当 bean 对象在 xml 配置文件中没有覆盖 look-up method 或者 replace method 的时候，使用 Java 反射机制获取 bean 的构造函数进行实例化。
-  - 反之，则使用 CGLIB 来实例化对象。
+    - 当 bean 对象在 xml 配置文件中没有覆盖 look-up method 或者 replace method 的时候，使用 Java 反射机制获取 bean 的构造函数进行实例化。
+    - 反之，则使用 CGLIB 来实例化对象。
 - lazy-init
   - 通过牺牲 IoC 容器初始化的性能，来有效提升应用第一次获取该 bean 的效率。
   - 在 refresh() 函数中实现。
@@ -712,6 +733,9 @@ Java 中不能从静态上下文访问非静态数据只是因为非静态变量
 - FactoryBean
   
     FactoryBean 是一个特殊的 Bean 。可以通过实现 FactoryBean 接口实现向 IoC 容器注册两个 Bean，一个是 Bean 本身，一个是 FactoryBean.getObject() 返回值代表的 Bean 。
+    
+    - 当在IOC容器中的Bean实现了FactoryBean后，通过getBean(String BeanName)获取到的Bean对象并不是FactoryBean的实现类对象，而是这个实现类中的getObject()方法返回的对象。要想获取FactoryBean的实现类，就要getBean(&BeanName)，在BeanName之前加上"&"。
+    
 - BeanFactory
   
     BeanFactory 是 Spring  IOC 容器的核心接口，它定义了容器的主要功能，如创建 bean，获取 bean 等，是用来管理 bean 的。
@@ -720,6 +744,10 @@ Java 中不能从静态上下文访问非静态数据只是因为非静态变量
 
 面向切面编程，指在程序运行中，将代码动态地切入到类的指定方法、位置上，不影响主业务代码。 Spring AOP 是基于动态代理的，即运行时注入。
 
+**AOP 原理**
+
+在 AopProxyFactory 中会为目标代理对象 target 调用 createAopProxy() 创建 AopProxy 代理对象，主要依据相应 Bean 是否实现了 InvocationHandler 接口，如果实现则使用 JDK 代理的方式代理对象，否则使用 CGLIB 。
+
 **Advice 增强**
 
 有 beforeAdvice 和 afterAdvice ，分别在 Pointcut 的前、后执行。
@@ -727,10 +755,6 @@ Java 中不能从静态上下文访问非静态数据只是因为非静态变量
 **PointCut 切面**
 
 通过正则表达式或者匹配方法名匹配相应需要 Advice 增强的方法。
-
-**AOP 原理**
-
-在 AopProxyFactory 中会为目标代理对象 target 调用 createAopProxy() 创建 AopProxy 代理对象，主要依据相应 Bean 是否实现了 InvocationHandler 接口，如果实现则使用 JDK 代理的方式代理对象，否则使用 CGLIB 。
 
 #### Spring 事务
 
@@ -1020,8 +1044,7 @@ DispatcherServlet
 
 对于一次IO访问（以read举例），数据会先被拷贝到操作系统内核的缓冲区中，然后才会从操作系统内核的缓冲区拷贝到应用程序的地址空间。所以说，当一个read操作发生时，它会经历两个阶段：
   1. 等待数据准备 (Waiting for the data to be ready)
-  2. 将数据从内核拷贝到进程中 (Copying the data from the kernel to the process)
-	
+        2. 将数据从内核拷贝到进程中 (Copying the data from the kernel to the process)
 #### 五种I/O模型
 - 阻塞 I/O（blocking IO）
 - 非阻塞 I/O（nonblocking IO）
@@ -1244,7 +1267,7 @@ Go-Back-N协议
     当cwnd >= ssthresh时，cwnd每轮加1。如果遇到超时，ssthresh /= 2，然后慢开始
 - 快重传/快恢复
     当连续收到三个重复的ack时，cwnd = ssthresh = cwnd / 2
-    
+
 **TCP粘包**
 
 ![TCP粘包问题](https://blog.csdn.net/weixin_41047704/article/details/85340311)
@@ -1431,11 +1454,12 @@ MySQL默认为Repeatable-read（可重复读），Oracle默认为Read-commited�
 - 系统版本号：是一个递增的数字，每开始一个新的事务，系统版本号就会自动递增。
 - 事务版本号：事务开始时的系统版本号。
 		
+
 **隐藏的列**
 MVCC 在每行记录后面都保存着两个隐藏的列，用来存储两个版本号：
   - 创建版本号：创建一行数据时，将当前系统版本号作为创建版本号赋值。
   - 删除版本号：删除一行数据时，将当前系统版本号作为删除版本号赋值。
-	  
+
 **REPEATABLE READ 隔离级别下 MVCC 如何工作**
 
 SELECT
@@ -1443,6 +1467,7 @@ SELECT
 1. 只查找版本号早于当前事务版本的数据行，可以确保事务读取的行要么是在开始事务之前已经存在要么是事务自身插入或者修改过的，在事务开始之后才插入的行，事务不会看到。
 2. 行的删除版本号要么未定义，要么大于当前事务版本号，这样可以确保事务读取到的行在事务开始之前未被删除。
 			
+
 UPDATE
 
 将当前系统版本号作为更新前的数据行快照的删除版本号，并将当前系统版本号作为更新后的数据行快照的创建版本号。可以理解为先执行 DELETE 后执行 INSERT。
@@ -1785,18 +1810,19 @@ BASE 是 Basically Available（基本可用） 、Soft-state（软状态） 和 
 			两阶段提交执行过程中，所有的 参与者 都需要听从 协调者 的统一调度，期间处于阻塞状态而不能从事其他操作，这样效率极其低下。 
 		数据不一致性
 			如果在发出 commit 指令后，因为网络阻塞问题，有些 参与者 未收到 commit 指令，还是会存在数据不一致的问题。
-			
-			
+
+
+​			
 三阶段提交协议
-	主要比两阶段多出了一个 预询盘 的过程。
-	
+​	主要比两阶段多出了一个 预询盘 的过程。
+​	
 补偿事务（TCC）
-	Try
-		Try 阶段主要是对业务系统做检测及资源预留。
-	Confirm
-		Confirm 阶段主要是对业务系统做确认提交，Try阶段执行成功并开始执行 Confirm阶段时，默认 Confirm阶段是不会出错的。即：只要Try成功，Confirm一定成功。
-	Cancel
-		Cancel 阶段主要是在业务执行错误，需要回滚的状态下执行的业务取消，预留资源释放。
+​	Try
+​		Try 阶段主要是对业务系统做检测及资源预留。
+​	Confirm
+​		Confirm 阶段主要是对业务系统做确认提交，Try阶段执行成功并开始执行 Confirm阶段时，默认 Confirm阶段是不会出错的。即：只要Try成功，Confirm一定成功。
+​	Cancel
+​		Cancel 阶段主要是在业务执行错误，需要回滚的状态下执行的业务取消，预留资源释放。
 
 #### RPC
 
