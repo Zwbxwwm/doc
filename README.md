@@ -1864,7 +1864,17 @@ BASE 是 Basically Available（基本可用） 、Soft-state（软状态） 和 
 
 #### RSA
 
-中国剩余定理
+欧拉函数：
+
+  φ(n) = 有多少个与n构成互质关系的正整数小于等于n，
+
+欧拉定理：
+
+  a的φ(n)次方被n除的余数为1
+
+中国剩余定理(CRT)：
+
+  用于计算
 
 [rsa算法](https://zhuanlan.zhihu.com/p/48249182)
 
