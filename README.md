@@ -947,7 +947,7 @@ bean规范如下：
 
 **AOP 原理**
 
-在 AopProxyFactory 中会为目标代理对象 target 调用 createAopProxy() 创建 AopProxy 代理对象，主要依据相应 Bean 是否实现了 InvocationHandler 接口，如果实现则使用 JDK 代理的方式代理对象，否则使用 CGLIB 。
+在 AopProxyFactory 中会为目标代理对象 target 调用 createAopProxy() 创建 AopProxy 代理对象，主要依据相应 Bean 是否实现了 InvocationHandler 接口，如果实现则使用 JDK 代理的方式代理对象，否则使用 CGLIB。
 
 **Advice 增强**
 
@@ -1330,6 +1330,11 @@ Golang gc 优化的核心就是尽量使得 STW(Stop The World) 的时间越来�
 
 -------
 ## 三、计算机操作系统
+
+### 缓存（cache）与缓冲(buffer)的主要区别
+Buffer的核心作用是用来缓冲，缓和冲击。比如你每秒要写100次硬盘，对系统冲击很大，浪费了大量时间在忙着处理开始写和结束写这两件事嘛。用个buffer暂存起来，变成每10秒写一次硬盘，对系统的冲击就很小，写入效率高了，日子过得爽了。极大缓和了冲击。
+Cache的核心作用是加快取用的速度。比如你一个很复杂的计算做完了，下次还要用结果，就把结果放手边一个好拿的地方存着，下次不用再算了。加快了数据取用的速度。
+简单来说就是buffer偏重于写，而cache偏重于读。
 
 ### 进程与线程
 
