@@ -1576,56 +1576,59 @@ Cache的核心作用是加快取用的速度。比如你一个很复杂的计算
 
 文件描述符（File descriptor）在形式上是一个非负整数。实际上，它是一个索引值，指向内核为每一个进程所维护的该进程打开文件的记录表。当程序打开一个现有文件或者创建一个新文件时，内核向进程返回一个文件描述符。
 
-
 ### I/O 访问
 
 对于一次IO访问（以read举例），数据会先被拷贝到操作系统内核的缓冲区中，然后才会从操作系统内核的缓冲区拷贝到应用程序的地址空间。所以说，当一个read操作发生时，它会经历两个阶段：
-  1. 等待数据准备 (Waiting for the data to be ready)
-  2. 将数据从内核拷贝到进程中 (Copying the data from the kernel to the process)
+  1. 数据准备（磁盘->缓冲），时间较长
+  2. 数据拷贝（缓冲->用户内存），时间较短
 
 ### 五种I/O模型
-- 阻塞 I/O（blocking IO）
-- 非阻塞 I/O（nonblocking IO）
-- I/O 多路复用（ IO multiplexing）
-- 信号驱动 I/O（ signal driven IO）
+- 同步I/O
+  - 阻塞 I/O（blocking IO）
+  - 非阻塞 I/O（nonblocking IO）
+  - I/O 多路复用（ IO multiplexing）
+  - 信号驱动 I/O（ signal driven IO）
 - 异步 I/O（asynchronous IO）
 
 #### 阻塞I/O（blocking IO）
 
-当用户进程调用了recvfrom 这个系统调用，kernel 就开始了IO的第一个阶段：
-		
-- 准备数据（对于网络IO来说，很多时候数据在一开始还没有到达。比如，还没有收到一个完整的UDP包。这个时候kernel就要等待足够的数据到来）。这个过程需要等待，也就是说数据被拷贝到操作系统内核的缓冲区中是需要一个过程的。
-- 用户进程阻塞（当然，是进程自己选择的阻塞）。当 kernel 一直等到数据准备好了，它就会将数据从 kernel 中拷贝到用户内存，然后 kernel 返回结果，用户进程才解除 block 的状态，重新运行起来。
-		
-
-所以，blocking IO的特点就是在IO执行的两个阶段都被block了。
+进程会一直阻塞，直到数据拷贝完成。
 		
 优势	1. 每线程，每连接
 问题	1. cpu上下文切换、调度消耗
 		
 #### 非阻塞 I/O（nonblocking IO）
 
-当用户进程发出read操作时，如果kernel中的数据还没有准备好，那么它并不会block用户进程，而是立刻返回一个error。
-从用户进程角度讲 ，它发起一个read操作后，并不需要等待，而是马上就得到了一个结果。用户进程判断结果是一个error时，它就知道数据还没有准备好，于是它可以再次发送read操作。一旦kernel中的数据准备好了，并且又再次收到了用户进程的system call，那么它马上就将数据拷贝到了用户内存，然后返回。
-
-所以，nonblocking IO的特点是用户进程需要不断的主动询问kernel数据好了没有。
+当I/O的请求操作无法完成时，不会阻塞进程，而是返回一个错误，I/O函数会不断的轮询，直到数据准备好为止。
 
 优势	1. 一个主线程即可完成BIO中多个线程完成的任务
 问题	1. 需要轮询client链表，每次查看是否有数据到达都要调用 recv() 系统调用，涉及用户态到内核态的切换。当连接数量过大的时候，效率异常低下（C10K问题）
 		
 #### I/O 多路复用（IO multiplexing）
 
-当用户进程调用了select，那么整个进程会被block，而同时，kernel会“监视”所有select负责的socket，当任何一个socket中的数据准备好了，select就会返回。这个时候用户进程再调用read操作，将数据从kernel拷贝到用户进程。
+多个进程的I/O注册到一个复用器（select）上，在用一个进程调用这个复用器，select会监听所有注册的I/O。
+如果select监听的I/O在内核中都没有可读数据，则这个select调用进程会阻塞，当任一I/O调用在内核缓存区中有可读数据时，select进程就会返回，而后，select进程可以自己发起读取I/O 或 通知注册的I/O进程再次发起。
 
-所以，I/O 多路复用的特点是通过一种机制一个进程能同时等待多个文件描述符，而这些文件描述符（套接字描述符）其中的任意一个进入读就绪状态，select()函数就可以返回。
+所以，I/O 多路复用的本质是通过一种机制一个进程能同时等待多个文件描述符，而这些文件描述符（套接字描述符）其中的任意一个进入读就绪状态，select()函数就可以返回。
 
 如果处理的连接数不是很高的话，使用select/epoll的web server不一定比使用multi-threading + blocking IO的web server性能更好，可能延迟还更大。select/epoll的优势并不是对于单个连接能处理得更快，而是在于能处理更多的连接。
+
+#### 信号驱动 I/O
+
+进程发起I/O系统调用时，会在内核中注册一个信号处理函数，然后进程直接返回，当内核中数据已经准备好就会发送一个信号给进程，进程在信号处理函数中调用I/O访问函数。
+
+#### 异步 I/O
+
+进程发起I/O系统调用，进程返回（不阻塞），但是也不会返回结果，当内核把整个I/O处理完后，会通知进程结果，进程直接获取到数据。
 
 ### select、poll、epoll详解
 [select、poll、epoll详解](https://www.jianshu.com/p/722819425dbd)
 #### select
 
+select是用来让我们的程序监视多个文件描述符的状态变化的。程序会停在select这里等待，直到被监视的文件句柄有一个或多个发生了状态改变
+```C
 int select (int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
+```
 select 函数监视的文件描述符分3类，分别是writefds、readfds、和exceptfds。调用后select函数会阻塞，直到有描述副就绪（有数据 可读、可写、或者有except），或者超时（timeout指定等待时间，如果立即返回设为null即可），函数返回。当select函数返回后，可以通过遍历fdset，来找到就绪的描述符。
 
 优势	
@@ -1639,8 +1642,9 @@ select 函数监视的文件描述符分3类，分别是writefds、readfds、和
 3. 1024 个连接的限制，因为内核宏定义 fd_set 最多支持1024，除非重新编译内核
 		
 #### poll
-
+```C
 int poll (struct pollfd *fds, unsigned int nfds, int timeout);
+```
 pollfd结构包含了要监视的event和发生的event，不再使用select“参数-值”传递的方式。同时，pollfd并没有最大数量限制（但是数量过大后性能也是会下降）。 和select函数一样，poll返回后，需要轮询pollfd来获取就绪的描述符。
 
 优势
@@ -1657,11 +1661,11 @@ pollfd结构包含了要监视的event和发生的event，不再使用select“�
 select和poll都需要在返回后，通过遍历文件描述符来获取已经就绪的socket。事实上，同时连接的大量客户端在一时刻可能只有很少的处于就绪状态，因此随着监视的描述符数量的增长，其效率也会线性下降。
 		
 #### epoll
-
+```C
 int epoll_create(int size)；//创建一个epoll的句柄，size用来告诉内核这个监听的数目一共有多大
 int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)；
 int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout);
-
+```
 epoll_create()
 
 创建一个epoll的句柄，它会占用一个fd值，在linux下如果查看/proc/进程id/fd/，是能够看到这个fd的，所以在使用完epoll后，必须调用close()关闭，否则可能导致fd被耗尽。
@@ -2100,8 +2104,8 @@ UPDATE
 #### 索引的优缺点
 
 **优点**
-- 可以大大加快数据的检索速度，这也是创建索引的最主要的原因。
-- 通过使用索引，可以在查询的过程中，使用优化隐藏器，提高系统的性能。
+- 可以大大**加快**数据的检索速度，这也是创建索引的最**主要的原因**。
+- 通过使用索引，可以在查询的过程中，使用优化隐藏器，**提高系统的性能**。
 
 **缺点**
 - 时间方面：创建索引和维护索引要耗费时间，具体地，当对表中的数据进行增加、删除和修改的时候，索引也要动态的维护，会降低增/改/删的执行效率；
@@ -2355,86 +2359,278 @@ mysql对sql语句有很多非常实用而方便的扩展，比如limit功能(分
 
 #### Redis单线程模型
 
+Redis 基于 Reactor 模式来设计开发了自己的一套高效的事件处理模型，这套事件处理模型对应的是 Redis 中的文件事件处理器（file event handler）。由于文件事件处理器是单线程方式运行的，所以我们一般都说 Redis 是单线程模型。
+
+**原因：**
+- 单线程编程容易并且更容易维护；
+- Redis 的性能瓶颈不在 CPU ，主要在内存和网络；
+- 多线程就会存在死锁、线程上下文切换等问题，甚至会影响性能。
+
+Redis 通过IO**多路复用程序**来监听来自客户端的大量连接（或者说是监听多个 socket），它会将感兴趣的事件及类型（读、写）注册到内核中并监听每个事件是否发生。I/O 多路复用技术的使用让 Redis 不需要额外创建多余的线程来监听客户端的大量连接，降低了资源的消耗。
+
+**采用多线程：**
+- Redis4.0：大键值对的删除操作的命令，使用这些命令就会使用主处理之外的其他线程来“异步处理”。
+- Redis6.0：在网络数据的读写IO这类耗时操作可以使用多线程，执行命令仍然是单线程顺序执行。
+
 ### Redis基本数据类型
 
 #### String
 
+字符串对象的编码可以是 int 、 raw 或者 embstr 。
+
+**INT编码**
+  如果一个字符串对象保存的是整数值， 并且这个整数值可以用 long 类型来表示， 那么字符串对象会将 redisObject 中 ptr 指针类型从 void* 转换成 long ，并将字符串对象的编码设置为 int 。
+**raw编码**
+  如果字符串对象保存的是一个长度大于 39 （ver3.2前，3.2后是 44 字节）字节的字符串值， 那么将对象的编码设置为 raw 。
+**embstr编码**
+  如果字符串对象保存的是一个长度小于等于 39 字节的字符串值，使用 embstr 编码。
+
+**SDS**
+  虽然 Redis 是用 C 语言写的，但是 Redis 并没有使用 C 的字符串表示，而是自己构建了一种 简单动态字符串（simple dynamic string，SDS）。相比于 C 的原生字符串，Redis 的 SDS 不光可以保存文本数据还可以保存二进制数据，并且获取字符串长度复杂度为 O(1)（C 字符串为 O(N)）,除此之外，Redis 的 SDS API 是安全的，不会造成缓冲区溢出。
+**raw和embstr的区别**
+  embstr 和 raw 都是由 redisObject 和 sds 组成的。
+  
+  不同的是： embstr 的redisObject 和 sds 是连续的，只需要使用 malloc 分配一次内存；而 raw 需要为redisObject 和 sds 分别分配内存，即需要分配两次内存。
+  
+  但 embstr 也有明显的缺点：每次增加长度， redisObject 和 sds 都需要重新分配内存。
+
+**raw和embstr为什么以39字节作为分界**
+  redisObject 占用 16 字节， sdshdr 的 free 和 len 都是 unsigned int 类型各自占用 4 字节， content 数组最后一byte是 '\0'。所以一共 64 字节减去上述占用还剩下 39 字节。
+  
+  ver3.2以后，redis 推出 5 种 sdshdr 类型，根据 sds 的实际长度选择相应类型。其中 sdshdr8 中，有 len ， alloc ， flag （表示当前sdshdr的类型） 字段，都是 uint8 类型，占用 1 字节。所以相应多出了 5 字节的空间。
+
 #### List
+list 即是 链表。链表是一种非常常见的数据结构，特点是易于数据元素的插入和删除并且可以灵活调整链表长度，但是链表的随机访问困难。C 语言并没有实现链表，所以 Redis 实现了自己的链表数据结构。Redis 的 list 的实现为一个**双向链表**，即可以支持反向查找和遍历，更方便操作，不过带来了部分额外的内存开销。
 
 #### hash
+类似于 JDK1.8 前的 HashMap，内部实现也差不多(数组 + 链表)。不过，Redis 的 hash 做了更多优化。另外，hash 是一个 string 类型的 field 和 value 的映射表，特别适合用于存储**对象**，后续操作的时候，你可以直接仅仅修改这个对象中的某个字段的值。
 
 #### set
+类似于 Java 中的 HashSet 。Redis 中的 set 类型是一种无序集合，集合中的元素没有先后顺序。当你需要存储一个列表数据，又不希望出现重复数据时，set 是一个很好的选择，并且 set 提供了判断某个成员是否在一个 set 集合内的重要接口。可以基于 set 轻易实现交集、并集、差集的操作。
 
 #### sorted set
+和 set 相比，sorted set 增加了一个权重参数 score，使得集合中的元素能够按 score 进行有序排列，还可以通过 score 的范围来获取元素的列表。
 
 #### bitmap
+
+bitmap 存储的是连续的二进制数字（0 和 1），通过 bitmap, 只需要一个 bit 位来表示某个元素对应的值或者状态，key 就是对应元素本身 。我们知道 8 个 bit 可以组成一个 byte，所以 bitmap 本身会极大的节省储存空间。
 
 ### Redis底层数据结构
 
 #### list链表
 
+		链表结点：
+		typedef struct listNode {
+		  // 前置节点
+		  struct listNode *prev;
+		  // 后置节点
+		  struct listNode *next;
+		  // 节点的值
+		  void *value;
+		} listNode;
+		链表：
+		typedef struct list {
+		  // 表头节点
+		  listNode *head;
+		  // 表尾节点
+		  listNode *tail;
+		  // 链表所包含的节点数量
+		  unsigned long len;
+		  ...
+		} list;
+
+
 #### dict哈希表
+**dictht:**
+```C
+typedef struct dictht {
+  // 哈希表数组
+  dictEntry **table;
+  // 哈希表大小
+  unsigned long size;
+  // 哈希表大小掩码，用于计算索引值
+  // 总是等于 size - 1
+  unsigned long sizemask;
+  // 该哈希表已有节点的数量
+  unsigned long used;
+} dictht;
+```
+其中，table是一个dictEntry数组
+
+**dictEntry：**
+```C
+typedef struct dictEntry {
+  // 键
+  void *key;
+  // 值
+  union {
+      void *val;
+      uint64_t u64;
+      int64_t s64;
+  } v;
+  // 指向下个哈希表节点，形成链表
+  struct dictEntry *next;
+} dictEntry;
+```
+key 保存键值对中的键，  val 保存键值对中的值，其中键值对的值可以是一个指针， 或者是一个 uint64_t 整数， 又或者是一个 int64_t 整数。
+next 属性是指向另一个哈希表节点的指针， 这个指针可以将多个哈希值相同的键值对连接在一次， 以此来解决键冲突的问题。
+整体而言，哈希表的构成和 JDK1.7 中的 HashMap 比较类似。
+
+**Dict：**
+```C
+typedef struct dict {
+  // 类型特定函数
+  dictType *type;
+  // 私有数据
+  void *privdata;
+  // 哈希表
+  dictht ht[2];
+  // rehash 索引
+  // 当 rehash 不在进行时，值为 -1
+  int rehashidx; /* rehashing not in progress if rehashidx == -1 */
+} dict;
+```
+○ type 属性是一个指向 dictType 结构的指针， 每个 dictType 结构保存了一簇用于操作特定类型键值对的函数， Redis 会为用途不同的字典设置不同的类型特定函数。
+○ 而 privdata 属性则保存了需要传给那些类型特定函数的可选参数。
+○ ht 属性是一个包含两个项的数组， 数组中的每个项都是一个 dictht 哈希表， 一般情况下， 字典只使用 ht[0] 哈希表， ht[1] 哈希表只会在对 ht[0] 哈希表进行 rehash 时使用。
+○ rehashidx 记录了 rehash 目前的进度， 如果目前没有在进行 rehash ， 那么它的值为 -1 。
+
+**渐进式Rehash**
+整体rehash和Java中HashMap的resize类似，需要注意的是redis中哈希表的rehash是渐进式的。具体步骤：
+1. 为 ht[1] 分配空间， 让字典同时持有 ht[0] 和 ht[1] 两个哈希表。
+2. 在字典中维持一个索引计数器变量 rehashidx ， 并将它的值设置为 0 ， 表示 rehash 工作正式开始。
+3. 在 rehash 的时候，每次对该字典执行添加、删除、查找或者更新操作时， redis 还会将 ht[0] 哈希表中的第rehashidx 索引上的所有键值对 rehash 到 ht[1]，完成后 rehashidx 自增一。
+4. 当ht[0] 的所有键值对都被 rehash 至 ht[1] 时， 将 rehashidx 设为 -1 。
 
 #### ZSkipList跳表
+**zskiplist**
+```C
+typedef struct zskiplist {
+  // 表头节点和表尾节点
+  struct zskiplistNode *header, *tail;
+  // 表中节点的数量
+  unsigned long length;
+  // 表中层数最大的节点的层数
+  int level;
+} zskiplist;
+```
+**zskiplistNode**
+```C
+typedef struct zskiplistNode {
+  // 后退指针
+  struct zskiplistNode *backward;
+  // 分值
+  double score;
+  // 成员对象
+  robj *obj;
+  // 层
+  struct zskiplistLevel {
+      // 前进指针
+      struct zskiplistNode *forward;
+      // 跨度
+      unsigned int span;
+  } level[];
+} zskiplistNode;
+```
+○ 后退指针：用于从表尾部向头部遍历
+○ 分值和成员：  score 是一个 double 类型的数字， obj 是成员对象
+○ level[]： level[i].span 表示当前节点到第 i 层的跨度（中间跨过多少个节点）， forword 是前进指针，指向第 i 层的下一个节点
+
+**索引的创建**
+  每次创建一个新跳跃表节点的时候， 程序都根据幂次定律 （power law，越大的数出现的概率越小） 随机生成一个介于 1 和 32 之间的值作为 level 数组的大小， 这个大小就是层的“高度”。
 
 #### intSet整数集合
+整数集合（intset）是 Redis 用于保存整数值的集合抽象数据结构， 它可以保存类型为 int16_t 、 int32_t 或者 int64_t 的整数值。
+```C
+typedef struct intset {
+    // 编码方式
+    uint32_t encoding;
+    // 集合包含的元素数量
+    uint32_t length;
+    // 保存元素的数组
+    int8_t contents[];
+} intset;
+```
+○ contents：整数集合的每个元素都是 contents 数组的一个数组项（item）， 各个项在数组中按值从小到大有序地排列
+○ encoding：虽然 contents 的类型为 int8_t ，但实际上 contents 的真正类型取决于 encoding 的值：
+  § encoding = INTSET_ENC_INT16 ，实际存储 int16_t 类型的整数值
+  § encoding = INTSET_ENC_INT32 ，实际存储 int32_t 类型的整数值
+  § encoding = INTSET_ENC_INT64 ，实际存储 int64_t 类型的整数值
+**集合升级**
+1. 根据升级的类型， 为集合分配空间。
+2. 将底层数组现有的所有元素都转换成与新元素相同的类型， 并将所有元素由后往前地放到相应位置，而且在放置元素的过程中，需要维持集合的有序性。
+3. 将新元素添加到底层数组里面。因为引发升级的新元素的长度总是比整数集合现有所有元素的长度都大，所以这个新元素的值要么就大于所有现有元素，要么就小于所有现有元素。
+
+**升级的好处**
+§ 提升灵活性，可以随意将int16_t 、 int32_t 或者 int64_t 类型的整数添加到集合中而不必担心类型错误。
+§ 节约内存空间。
+
+**集合不降级**
 
 #### zipList压缩集合
 
-### Redis内存淘汰机制
+### Redis数据过期
 
+#### 判断数据过期
+
+Redis 自身维护了一个“过期字典”（可以看作是 hash 表）来保存数据过期的时间。过期字典的键指向 Redis 数据库中的某个 key(键)，过期字典的值是一个 long 类型的整数，保存了 key 的过期时间（毫秒精度的 UNIX 时间戳）。
+
+#### 过期删除策略
+
+常用的过期数据的删除策略就两个：
+- 惰性删除 ：只会在取出 key 的时候才对数据进行过期检查。这样对 CPU 最友好，但是可能会造成太多过期 key 没有被删除。
+- 定期删除 ： 每隔一段时间抽取一批 key 执行删除过期 key 操作。并且，Redis 底层会通过**限制**删除操作执行的**时长和频率**来减少删除操作对**CPU**时间的影响。
+定期删除对内存更加友好，惰性删除对 CPU 更加友好。两者各有千秋，所以 Redis 采用的是 定期删除+惰性/懒汉式删除 。
+
+但是，仅仅通过给 key 设置过期时间还是有问题的。因为还是可能存在定期删除和惰性删除漏掉了很多过期 key 的情况。这样就导致大量过期 key 堆积在内存里，然后就 Out of memory 了。
+
+#### 数据淘汰策略
 Redis 提供 6 种数据淘汰策略：
 
-1. **volatile-lru（least recently used）**：从已设置过期时间的数据集（server.db[i].expires）中挑选最近最少使用的数据淘汰
-2. **volatile-ttl**：从已设置过期时间的数据集（server.db[i].expires）中挑选将要过期的数据淘汰
-3. **volatile-random**：从已设置过期时间的数据集（server.db[i].expires）中任意选择数据淘汰
-4. **allkeys-lru（least recently used）**：当内存不足以容纳新写入数据时，在键空间中，移除最近最少使用的 key（这个是最常用的）
+1. **volatile-lru（least recently used）**：从已设置过期时间的数据集（server.db[i].expires）中挑选**最近使用**的数据淘汰
+2. **volatile-ttl**：从已设置过期时间的数据集（server.db[i].expires）中挑选**将要过期**的数据淘汰
+3. **volatile-random**：从已设置过期时间的数据集（server.db[i].expires）中**任意选择**数据淘汰
+4. **allkeys-lru（least recently used）**：当内存不足以容纳新写入数据时，在键空间中，移除**最近使用**的 key（这个是最常用的）
 5. **allkeys-random**：从数据集（server.db[i].dict）中任意选择数据淘汰
 6. **no-eviction**：禁止驱逐数据，也就是说当内存不足以容纳新写入数据时，新写入操作会报错。这个应该没人使用吧！
 
 4.0 版本后增加以下两种：
 
-1. **volatile-lfu（least frequently used）**：从已设置过期时间的数据集(server.db[i].expires)中挑选最不经常使用的数据淘汰
-2. **allkeys-lfu（least frequently used）**：当内存不足以容纳新写入数据时，在键空间中，移除最不经常使用的 key
-
-#### 判断数据过期
-
-#### 过期删除策略
+1. **volatile-lfu（least frequently used）**：从已设置过期时间的数据集(server.db[i].expires)中挑选**最不经常使用**的数据淘汰
+2. **allkeys-lfu（least frequently used）**：当内存不足以容纳新写入数据时，在键空间中，移除**最不经常使用**的 key
 
 ### Redis分布式锁
 
-#### 加锁
+先拿setnx来争抢锁，抢到之后，再用expire给锁加一个过期时间防止锁忘记了释放。
 
-  setnx（key，1）  
+- 加锁 `setnx（key，1） ` 
+- 解锁 `del（key）`  
+- 锁超时 `expire（key，30）`  
 
-#### 解锁
+#### 问题：
 
-  del（key）  
-
-#### 锁超时
-
-  expire（key，  30）  
-
-#### 问题
-
-#### setnx和expire的非原子性
+##### setnx和expire的非原子性
 
 节点1加锁后，还未执行expire()就宕机，死锁
 
-##### 解决方案
+**解决方案**
 
-setnx后续支持传入超时参数，或者写lua脚本实现原子性
+setnx后续支持传入超时参数，或者写事务/lua脚本实现原子性
 
-#### del 导致误删
+##### del 导致误删
 
 节点1加锁并设置超时时间30s，由于运行很慢，超过30s后，锁自动过期。节点2获得锁，此后节点1完成后del锁，其实是删除掉了节点2的锁 
 
-##### 解决方案
+**解决方案**
 
 1. 令value为线程ID，删除锁时验证是自己的锁（判断是否是自己的锁，此操作非原子性，需要使用lua脚本）
 2. 每个线程开启一个守护线程，当锁快要过期的时候，更新当前锁的expire时间
 
 ### Redis事务
+
+事务是指一个完整的动作，要么全部执行，要么什么也没有做。
+Redis 事务不是严格意义上的事务，只是用于帮助用户在一个步骤中执行多个命令。
+MULTI(组装事务)、EXEC(执行事务)、DISCARD(取消事务)、WATCH(监视事务) 这四个指令构成了 redis 事务处理的基础。
 
 #### 事务的三个阶段
 
@@ -2449,7 +2645,7 @@ setnx后续支持传入超时参数，或者写lua脚本实现原子性
 当一个客户端切换到事务状态之后， 服务器会根据这个客户端发来的不同命令执行不同的操作：
 
 - 如果客户端发送的命令为 EXEC 、 DISCARD 、 WATCH 、 MULTI 四个命令的其中一个， 那么服务器立即执行这个命令。
-- 如果客户端发送其他命令，     那么服务器并不立即执行这个命令， 而是**将这个命令放入一个事务队列**里面， 然后向客户端返回 QUEUED 回复。
+- 如果客户端发送其他命令，那么服务器并不立即执行这个命令， 而是**将这个命令放入一个事务队列**里面， 然后向客户端返回 QUEUED 回复。
 
 ##### 事务队列
 
@@ -2522,7 +2718,8 @@ setnx后续支持传入超时参数，或者写lua脚本实现原子性
 
 ### Redis集群
 
-[引用](https://segmentfault.com/a/1190000022028642)
+[Redis集群方案](https://segmentfault.com/a/1190000022028642)
+[Redis架构模式](https://www.redis.com.cn/redis-interview-questions.html#redis-%E6%9C%89%E5%93%AA%E4%BA%9B%E6%9E%B6%E6%9E%84%E6%A8%A1%E5%BC%8F%E8%AE%B2%E8%AE%B2%E5%90%84%E8%87%AA%E7%9A%84%E7%89%B9%E7%82%B9)
 
 Redis支持三种集群方案
 
@@ -2530,10 +2727,27 @@ Redis支持三种集群方案
 - Sentinel（哨兵）模式
 - Cluster模式
 
+#### 缓存击穿
+
+一般的缓存系统，都是按照key去缓存查询，如果不存在对应的value，就应该去后端系统查找（比如DB）。一些恶意的请求会故意查询不存在的key,请求量很大，就会对后端系统造成很大的压力。这就叫做缓存穿透。
+
+如何避免？
+
+1：对查询结果为空的情况也进行缓存，缓存时间设置短一点，或者该key对应的数据insert了之后清理缓存。
+
+2：对一定不存在的key进行过滤。可以把所有的可能存在的key放到一个大的Bitmap中，查询时通过该bitmap过滤。
+
 #### 缓存雪崩
 
+当缓存服务器重启或者大量缓存集中在某一个时间段失效，这样在失效的时候，会给后端系统带来很大压力。导致系统崩溃。
 
-#### 缓存击穿
+如何避免？
+
+1：在缓存失效后，通过加锁或者队列来控制读数据库写缓存的线程数量。比如对某个key只允许一个线程查询数据和写缓存，其他线程等待。
+
+2：做二级缓存，A1为原始缓存，A2为拷贝缓存，A1失效时，可以访问A2，A1缓存失效时间设置为短期，A2设置为长期
+
+3：不同的key，设置不同的过期时间，让缓存失效的时间点尽量均匀。
 
 --------
 
